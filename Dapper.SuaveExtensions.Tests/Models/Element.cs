@@ -5,21 +5,21 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Dapper.TotalCRUD.DataAnnotations;
+using Dapper.SuaveExtensions.DataAnnotations;
 
-namespace Dapper.TotalCRUD.Test.Models
+namespace Dapper.SuaveExtensions.Tests.Models
 {
     [Table("ElementTable")]
     public class Element
     {
-        [DbKey(KeyType.Manual, Order = 1)]
+        [KeyType(KeyType.Assigned)]
         public int BookingId { get; set; }
 
-        [DbKey(KeyType.Manual, Order = 2)]
+        [KeyType(KeyType.Assigned)]
         [Column("ItinId")]
         public int ItineraryId { get; set; }
 
-        [DbKey(KeyType.Sequential, Order = 3)]
+        [KeyType(KeyType.Sequential)]
         public int ElementId { get; set; }
 
         [Required]

@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
-using Dapper.TotalCRUD.Test.Models;
+using Dapper.SuaveExtensions.Tests.Models;
 
-namespace Dapper.TotalCRUD.Test
+namespace Dapper.SuaveExtensions.Tests
 {
     [TestFixture]
     public class UpdateTests
@@ -133,12 +133,11 @@ namespace Dapper.TotalCRUD.Test
                 // Arrange
                 SoftDelete softDelete = await connection.Insert<SoftDelete>(new SoftDelete()).ConfigureAwait(false);
 
-                // Act
-                softDelete = await connection.Update<SoftDelete>(new { softDelete.SoftDeleteId, RecordsStatus = 999 })
-                    .ConfigureAwait(false);
-
-                // Assert
-                Assert.AreEqual(1, softDelete.RecordStatus);
+                // Act / Assert
+                Assert.ThrowsAsync<ArgumentException>(async () =>
+                {
+                    await connection.Update<SoftDelete>(new { softDelete.SoftDeleteId, RecordsStatus = 999 });
+                });
             }
         }
 

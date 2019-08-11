@@ -1,4 +1,4 @@
-﻿// <copyright file="DbKeyType.cs" company="InsideTravel Technology Ltd">
+﻿// <copyright file="KeyType.cs" company="InsideTravel Technology Ltd">
 // Copyright (c) InsideTravel Technology Ltd. All rights reserved.
 // </copyright>
 

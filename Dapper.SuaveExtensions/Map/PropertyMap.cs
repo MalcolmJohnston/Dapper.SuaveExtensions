@@ -93,7 +93,15 @@ namespace Dapper.SuaveExtensions.Map
             {
                 // otherwise obey the attributes
                 pm.IsReadOnly = readOnly != null ? readOnly.IsReadOnly : false;
-                pm.IsEditable = editable != null ? editable.AllowEdit : true;
+
+                if (pm.IsReadOnly && editable == null)
+                {
+                    pm.IsEditable = false;
+                }
+                else
+                {
+                    pm.IsEditable = editable != null ? editable.AllowEdit : true;
+                }
             }
 
             // if editable and readonly conflict throw an error

@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Dapper.TotalCRUD.DataAnnotations;
+using Dapper.SuaveExtensions.DataAnnotations;
 
-namespace Dapper.TotalCRUD.Test.Models
+namespace Dapper.SuaveExtensions.Tests.Models
 {
     public class ReadOnly
     {
-        [DbKey(KeyType.Sequential)]
+        [KeyType(KeyType.Sequential)]
         public short SequentialId { get; set; }
 
         public string Editable { get; set; }

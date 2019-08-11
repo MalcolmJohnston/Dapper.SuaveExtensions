@@ -9,7 +9,7 @@ using System.Threading;
 using Dapper;
 using NUnit.Framework;
 
-namespace Dapper.TotalCRUD.Test
+namespace Dapper.SuaveExtensions.Tests
 {
     /// <summary>
     /// Class that contains Setup methods for the Test Fixtures in this Assembly
@@ -19,7 +19,7 @@ namespace Dapper.TotalCRUD.Test
     public class FixtureSetup
     {
         private const string localDbDataSource = @"(LocalDb)\MSSQLLocalDB";
-        private const string localDbCatalog = @"NssCrudTestDb";
+        private const string localDbCatalog = @"SuaveExtensionsTextDb";
 
         /// <summary>
         /// Gets the local database master connection string.
@@ -83,12 +83,12 @@ namespace Dapper.TotalCRUD.Test
                 connection.Open();
                 try
                 {
-                    connection.Execute(@"DROP DATABASE NssCrudTestDb;");
+                    connection.Execute($@"DROP DATABASE {localDbCatalog};");
                 }
                 catch (Exception)
                 { }
 
-                connection.Execute(@"CREATE DATABASE NssCrudTestDb;");
+                connection.Execute($@"CREATE DATABASE {localDbCatalog};");
             }
 
             using (SqlConnection connection = new SqlConnection(LocalDbConnectionString))
@@ -154,8 +154,8 @@ namespace Dapper.TotalCRUD.Test
                             PRIMARY KEY (Name),
                         )");
 
-                connection.Execute(@"CREATE SCHEMA holy");
-                connection.Execute(@"CREATE TABLE [holy].[SoftDeleteTest]
+                connection.Execute(@"CREATE SCHEMA Suave");
+                connection.Execute(@"CREATE TABLE [Suave].[SoftDeleteTest]
                                     (
                                         SoftDeleteId INT IDENTITY(1, 1) NOT NULL,
                                         RecordStatus INT NOT NULL

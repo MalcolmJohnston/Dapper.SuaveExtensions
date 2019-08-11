@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Dapper.TotalCRUD.DataAnnotations;
+using Dapper.SuaveExtensions.DataAnnotations;
 
-namespace Dapper.TotalCRUD.Test.Models
+namespace Dapper.SuaveExtensions.Tests.Models
 {
-    [Table("SoftDeleteTest", Schema = "holy")]
+    [Table("SoftDeleteTest", Schema = "Suave")]
     public class SoftDelete
     {
-        [DbKey(KeyType.Identity)]
+        [KeyType(KeyType.Identity)]
         public int SoftDeleteId { get; set; }
 
         [SoftDelete(1, 0)]

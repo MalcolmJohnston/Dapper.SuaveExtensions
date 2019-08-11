@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Dapper.TotalCRUD.DataAnnotations;
+using Dapper.SuaveExtensions.DataAnnotations;
 
-namespace Dapper.TotalCRUD.Test.Models
+namespace Dapper.SuaveExtensions.Tests.Models
 {
     [Table("Cities")]
     public class City

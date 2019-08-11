@@ -205,6 +205,7 @@ namespace Dapper.SuaveExtensions.Map
             {
                 Schema = string.Empty,
                 TableName = objectType.Name,
+                Type = objectType,
             };
 
             // override schema and table name if table attribute present
@@ -328,10 +329,15 @@ namespace Dapper.SuaveExtensions.Map
             return key;
         }
 
-        public IList<PropertyMap> ValidateWhereProperties(object obj)
+        public IList<PropertyMap> ValidateWhereProperties(object whereConditions)
         {
+            if (whereConditions == null)
+            {
+                throw new ArgumentException("Please pass where conditions.");
+            }
+
             // get the passed properties
-            PropertyInfo[] propertyInfos = obj.GetType().GetProperties();
+            PropertyInfo[] propertyInfos = whereConditions.GetType().GetProperties();
 
             // check that we have at least one property/condition
             if (propertyInfos == null || propertyInfos.Length == 0)

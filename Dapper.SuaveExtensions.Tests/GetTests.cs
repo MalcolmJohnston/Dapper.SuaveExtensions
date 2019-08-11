@@ -4,11 +4,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Dapper;
-using NUnit.Framework;
-using Dapper.TotalCRUD.Test.Models;
+using Dapper.SuaveExtensions;
+using Dapper.SuaveExtensions.Tests.Models;
 
-namespace Dapper.TotalCRUD.Test
+using NUnit.Framework;
+
+namespace Dapper.SuaveExtensions.Tests
 {
     [TestFixture]
     public class GetTests

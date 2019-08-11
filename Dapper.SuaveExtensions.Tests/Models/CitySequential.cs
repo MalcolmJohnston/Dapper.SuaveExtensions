@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Dapper.TotalCRUD.DataAnnotations;
+using Dapper.SuaveExtensions.DataAnnotations;
 
-namespace Dapper.TotalCRUD.Test.Models
+namespace Dapper.SuaveExtensions.Tests.Models
 {
     [Table("CitiesSequential")]
     public class CitySequential
     {
-        [DbKey(KeyType.Sequential)]
+        [KeyType(KeyType.Sequential)]
         public short CityId { get; set; }
 
         [Required]

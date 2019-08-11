@@ -73,9 +73,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Dapper.HolyCRUD\Dapper.HolyCRUD.csproj">
-      <Project>{6d12e187-de21-405e-94f0-e151c4429afc}</Project>
-      <Name>Dapper.HolyCRUD</Name>
+    <ProjectReference Include="..\Dapper.SuaveExtensions\Dapper.SuaveExtensions.csproj">
+      <Project>{2586ea90-2874-4f38-b5b3-69f30f66471a}</Project>
+      <Name>Dapper.SuaveExtensions</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

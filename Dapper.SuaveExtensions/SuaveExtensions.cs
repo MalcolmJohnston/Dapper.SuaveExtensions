@@ -9,6 +9,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
 using System.Threading.Tasks;
 
 using Dapper.SuaveExtensions.Map;
@@ -43,6 +44,20 @@ namespace Dapper.SuaveExtensions
             return (await connection.QueryAsync<T>(sqlBuilder.BuildSelectById(type, id), id)
                 .ConfigureAwait(false))
                 .SingleOrDefault();
+        }
+
+        /// <summary>
+        /// Gets all instances of T from the database.
+        /// </summary>
+        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
+        /// <param name="connection">The connection.</param>
+        /// <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
+        public static async Task<IEnumerable<T>> GetAll<T>(this IDbConnection connection)
+        {
+            TypeMap type = GetTypeMap<T>();
+
+            return await connection.QueryAsync<T>(sqlBuilder.BuildSelectAll(type))
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -207,7 +222,5 @@ namespace Dapper.SuaveExtensions
 
             return typeMapCache[cacheKey];
         }
-
-
     }
 }

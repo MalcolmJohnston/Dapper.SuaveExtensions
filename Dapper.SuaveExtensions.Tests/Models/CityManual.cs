@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Dapper.TotalCRUD.DataAnnotations;
+using Dapper.SuaveExtensions.DataAnnotations;
 
-namespace Dapper.TotalCRUD.Test.Models
+namespace Dapper.SuaveExtensions.Tests.Models
 {
     [Table("CitiesManual")]
     public class CityManual
     {
-        [DbKey(KeyType.Manual, Order = 1)]
+        [KeyType(KeyType.Assigned)]
         [Required]
         public string CityCode { get; set; }
 

@@ -2,14 +2,14 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Dapper.TotalCRUD.DataAnnotations;
+using Dapper.SuaveExtensions.DataAnnotations;
 
-namespace Dapper.TotalCRUD.Test.Models
+namespace Dapper.SuaveExtensions.Tests.Models
 {
     [Table("DateStampTest")]
     public class DateStamp
     {
-        [DbKey(KeyType.Manual)]
+        [KeyType(KeyType.Assigned)]
         public string Name { get; set; }
 
         public string Value { get; set; }

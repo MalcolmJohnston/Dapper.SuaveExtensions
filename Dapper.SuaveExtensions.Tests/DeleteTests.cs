@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
-using Dapper.TotalCRUD.Test.Models;
+using Dapper.SuaveExtensions.Tests.Models;
 
-namespace Dapper.TotalCRUD.Test
+namespace Dapper.SuaveExtensions.Tests
 {
     [TestFixture]
     public class DeleteTests
