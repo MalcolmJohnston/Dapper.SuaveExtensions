@@ -55,11 +55,11 @@ namespace Dapper.SuaveExtensions.Tests
         }
 
         /// <summary>
-        /// Test that we can delete a single entity with an identity column by passenger 
-        /// a value type rather than a property bag.
+        /// Test that we can delete a single entity with an identity column by passing a single
+        /// typed argument rather than a property bag.
         /// </summary>
         [Test]
-        public async Task Delete_Entity_Value_Type()
+        public async Task Delete_Entity_Single_Typed_Argument()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {

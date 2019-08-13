@@ -219,14 +219,13 @@ namespace Dapper.SuaveExtensions.Map
                 throw new ArgumentException("Passed identifier object is null.");
             }
 
-            // if we have a single identity key and the passed id object is the same type as the key
-            // then this is valid.
-            // return a dictionary indexed on the identity key property name
-            if (this.HasIdentityKey && this.IdentityKey.PropertyInfo.PropertyType == id.GetType())
+            // if we have a single key on our dto and the passed id object is the same type as the key
+            // then return a dictionary indexed on the key property name
+            if (this.AllKeys.Count() == 1 && this.AllKeys.Single().PropertyInfo.PropertyType == id.GetType())
             {
                 return new Dictionary<string, object>()
                 {
-                    { this.IdentityKey.Property, id }
+                    { this.AllKeys.Single().Property, id }
                 };
             }
 

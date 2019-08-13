@@ -64,7 +64,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_All_With_Manual()
+        public async Task Get_All_With_Assigned()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -108,11 +108,12 @@ namespace Dapper.SuaveExtensions.Tests
         }
 
         /// <summary>
-        /// Gets the by identifier with identity using the value type of the identity property rather than a property bag.
+        /// Test that we can get an entity with a single identity key by passing a single type argument
+        /// rather than using a property bag.
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_By_Id_With_Identity_Value_Type()
+        public async Task Get_By_Id_With_Identity_Single_Typed_Argument()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -133,11 +134,11 @@ namespace Dapper.SuaveExtensions.Tests
         }
 
         /// <summary>
-        /// Gets the by identifier with manual.
+        /// Test we can retrive an entity with a single assigned key.
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_By_Id_With_Manual()
+        public async Task Get_By_Id_With_Assigned()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -149,6 +150,30 @@ namespace Dapper.SuaveExtensions.Tests
 
                 // Act
                 CityManual city = await connection.Read<CityManual>(new { CityCode = "NYC" });
+
+                // Assert
+                Assert.AreEqual("NYC", city.CityCode);
+                Assert.AreEqual("New York City", city.CityName);
+            }
+        }
+
+        /// <summary>
+        /// Test we can retrive an entity with a single assigned key using a single type argument.
+        /// </summary>
+        /// <returns></returns>
+        [Test]
+        public async Task Get_By_Id_With_Assigned_Single_Typed_Argument()
+        {
+            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            {
+                connection.Open();
+
+                // Arrange
+                await connection.Create(new CityManual() { CityCode = "PUP", CityName = "Portsmouth" });
+                await connection.Create(new CityManual() { CityCode = "NYC", CityName = "New York City" });
+
+                // Act
+                CityManual city = await connection.Read<CityManual>("NYC");
 
                 // Assert
                 Assert.AreEqual("NYC", city.CityCode);

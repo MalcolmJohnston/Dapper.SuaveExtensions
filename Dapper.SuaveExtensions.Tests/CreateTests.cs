@@ -56,7 +56,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// Test that we can insert an entity which has a single key that is manually derived
         /// </summary>
         [Test]
-        public async Task Insert_With_Manual_Key()
+        public async Task Insert_With_Assigned_Key()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -100,7 +100,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Insert_With_Composite_Key_One_Manual_And_One_Sequential()
+        public async Task Insert_With_Composite_Key_One_Assigned_And_One_Sequential()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -121,7 +121,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Insert_With_Composite_Key_Two_Manual_And_One_Sequential()
+        public async Task Insert_With_Composite_Key_Two_Assigned_And_One_Sequential()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
