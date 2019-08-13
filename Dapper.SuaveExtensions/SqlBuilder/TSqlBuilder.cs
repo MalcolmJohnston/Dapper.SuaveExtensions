@@ -142,11 +142,9 @@ namespace Dapper.SuaveExtensions.SqlBuilder
                 sb.Append(")");
 
                 // add identity column outputs
-                if (type.HasIdentityKeys)
+                if (type.HasIdentityKey)
                 {
-                    sb.Append(" OUTPUT ");
-                    sb.Append(string.Join(", ", type.AllKeys.Where(x => x.KeyType == KeyType.Identity)
-                                                            .Select(x => $"inserted.{x.ColumnSelect}")));
+                    sb.Append($" OUTPUT inserted.{type.IdentityKey.ColumnSelect}");
                 }
 
                 // add parameterised values

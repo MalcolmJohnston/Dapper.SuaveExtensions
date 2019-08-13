@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<RuleSet Name="Suave Extensions Code Analysis RuleSet" 
+         Description="This rule set contains all rules that I want to have enforced for C# programs."
+         ToolsVersion="14.0">
+  <IncludeAll Action="Warning" />
+  <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <Rule Id="SA1633" Action="None" />
+  </Rules>
+</RuleSet>

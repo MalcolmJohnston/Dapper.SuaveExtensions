@@ -55,6 +55,28 @@ namespace Dapper.SuaveExtensions.Tests
         }
 
         /// <summary>
+        /// Test that we can delete a single entity with an identity column by passenger 
+        /// a value type rather than a property bag.
+        /// </summary>
+        [Test]
+        public async Task Delete_Entity_Value_Type()
+        {
+            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            {
+                connection.Open();
+
+                // Arrange
+                City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
+
+                // Act
+                await connection.Delete<City>(city.CityId);
+
+                // Assert
+                Assert.IsNull(await connection.Read<City>(new { city.CityId }));
+            }
+        }
+
+        /// <summary>
         /// Test that we can delete a multiple entities using a where condition.
         /// </summary>
         [Test]

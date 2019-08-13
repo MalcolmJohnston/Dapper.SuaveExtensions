@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
@@ -113,9 +114,9 @@ namespace Dapper.SuaveExtensions.Map
         /// <value>
         /// The identity keys.
         /// </value>
-        public IEnumerable<PropertyMap> IdentityKeys
+        public PropertyMap IdentityKey
         {
-            get { return this.AllKeys.Where(x => x.KeyType == KeyType.Identity); }
+            get { return this.AllKeys.Where(x => x.KeyType == KeyType.Identity).SingleOrDefault(); }
         }
 
         /// <summary>
@@ -124,9 +125,9 @@ namespace Dapper.SuaveExtensions.Map
         /// <value>
         ///   <c>true</c> if this instance has identity keys; otherwise, <c>false</c>.
         /// </value>
-        public bool HasIdentityKeys
+        public bool HasIdentityKey
         {
-            get { return this.IdentityKeys.Count() > 0; }
+            get { return this.IdentityKey != null; }
         }
 
         /// <summary>
@@ -206,16 +207,30 @@ namespace Dapper.SuaveExtensions.Map
 
         /// <summary>
         /// Validates the key properties.
+        /// Converts to a dictionary when value type is passed and we have an identity key.
         /// </summary>
         /// <param name="id">The identifier.</param>
         /// <exception cref="ArgumentException">Thrown if a key property is not passed on the object.</exception>
-        public void ValidateKeyProperties(object id)
+        /// <returns>The validated key property bag.</returns>
+        public object ValidateKeyProperties(object id)
         {
             if (id == null)
             {
                 throw new ArgumentException("Passed identifier object is null.");
             }
 
+            // if we have a single identity key and the passed id object is the same type as the key
+            // then this is valid.
+            // return a dictionary indexed on the identity key property name
+            if (this.HasIdentityKey && this.IdentityKey.PropertyInfo.PropertyType == id.GetType())
+            {
+                return new Dictionary<string, object>()
+                {
+                    { this.IdentityKey.Property, id }
+                };
+            }
+
+            // otherwise iterate through all properties and check we have all key properties
             PropertyInfo[] propertyInfos = id.GetType().GetProperties();
             foreach (PropertyMap propertyMap in this.AllKeys)
             {
@@ -226,6 +241,8 @@ namespace Dapper.SuaveExtensions.Map
                     throw new ArgumentException($"Failed to find key property {propertyMap.Property}.");
                 }
             }
+
+            return id;
         }
 
         /// <summary>
@@ -347,6 +364,18 @@ namespace Dapper.SuaveExtensions.Map
             // all key properties
             typeMap.AllKeys = typeMap.allPropertyMaps.Where(x => x.IsKey).ToList();
 
+            // check whether we have more than one identity key
+            if (typeMap.AllKeys.Count(x => x.KeyType == KeyType.Identity) > 1)
+            {
+                throw new ArgumentException("Type can only define a single Identity key property.");
+            }
+
+            // if we have an identity key then we should have no other keys
+            if (typeMap.HasIdentityKey && typeMap.AllKeys.Count() > 1)
+            {
+                throw new ArgumentException("Type can only define a single key when using an Identity key property.");
+            }
+
             // check whether we have more than one sequential key
             if (typeMap.AllKeys.Count(x => x.KeyType == KeyType.Sequential) > 1)
             {
@@ -354,12 +383,6 @@ namespace Dapper.SuaveExtensions.Map
             }
 
             typeMap.SequentialKey = typeMap.AllKeys.SingleOrDefault(x => x.KeyType == KeyType.Sequential);
-
-            // check whether our sequential key is paired with one or more identity keys - this is not supported
-            if (typeMap.HasSequentialKey && typeMap.HasIdentityKeys)
-            {
-                throw new ArgumentException("Sequential keys are not compatible with Identity keys.");
-            }
 
             // check whether we have a soft delete column
             if (typeMap.allPropertyMaps.Where(x => x.IsSoftDelete).Count() > 1)

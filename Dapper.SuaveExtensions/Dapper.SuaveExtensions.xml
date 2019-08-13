@@ -1,0 +1,699 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Dapper.SuaveExtensions</name>
+    </assembly>
+    <members>
+        <member name="T:Dapper.SuaveExtensions.DataAnnotations.DateStampAttribute">
+            <summary>
+            The Date Stamp attribute is intended to be used to ensure that Properties that are Date Stamps
+            are automatically set to DateTime.Now on Insert, Update or Soft Delete.
+            </summary>
+            <seealso cref="T:System.ComponentModel.DataAnnotations.ValidationAttribute" />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataAnnotations.DateStampAttribute.IsValid(System.Object)">
+            <summary>
+            Returns true if ... is valid.
+            </summary>
+            <param name="value">The value of the object to validate.</param>
+            <returns>
+            true if the specified value is valid; otherwise, false.
+            </returns>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.DataAnnotations.KeyType">
+            <summary>
+            Enumeration of supported primary key types for SQL generation.
+            </summary>
+        </member>
+        <member name="F:Dapper.SuaveExtensions.DataAnnotations.KeyType.NotAKey">
+            <summary>
+            The column is not a key
+            </summary>
+        </member>
+        <member name="F:Dapper.SuaveExtensions.DataAnnotations.KeyType.Identity">
+            <summary>
+            The column is an identity key calculated by the database
+            </summary>
+        </member>
+        <member name="F:Dapper.SuaveExtensions.DataAnnotations.KeyType.Guid">
+            <summary>
+            The key is a guid.
+            </summary>
+        </member>
+        <member name="F:Dapper.SuaveExtensions.DataAnnotations.KeyType.Assigned">
+            <summary>
+            The key must be assinged in code.
+            </summary>
+        </member>
+        <member name="F:Dapper.SuaveExtensions.DataAnnotations.KeyType.Sequential">
+            <summary>
+            The key is sequential
+            This works like an identity column but the value is calculated
+            (e.g. SELECT TOP (ID) + 1 FROM Table)
+            </summary>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.DataAnnotations.KeyTypeAttribute">
+            <summary>
+            Key Type Attribute.
+            </summary>
+            <seealso cref="T:System.Attribute" />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataAnnotations.KeyTypeAttribute.#ctor(Dapper.SuaveExtensions.DataAnnotations.KeyType)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Dapper.SuaveExtensions.DataAnnotations.KeyTypeAttribute"/> class.
+            </summary>
+            <param name="keyType">Type of the key.</param>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.DataAnnotations.KeyTypeAttribute.KeyType">
+            <summary>
+            Gets the type of the key.
+            </summary>
+            <value>
+            The type of the key.
+            </value>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.DataAnnotations.SoftDeleteAttribute">
+            <summary>
+            The Soft Delete attribute is used to denote a property on a POCO that is mapped to a column which indicates deletion of
+            a row in the database.
+            For example;
+                If the Property 'RecordStatus' has the Soft Delete attribute with an inserted value of 1 and a deleted value of 0
+                Then the column mapped to RecordStatus would be set to 1 on insert
+                and updated to 0 on deletion, rather than having the row physically deleted.
+            </summary>
+            <seealso cref="T:System.Attribute" />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataAnnotations.SoftDeleteAttribute.#ctor(System.Object,System.Object)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Dapper.SuaveExtensions.DataAnnotations.SoftDeleteAttribute"/> class.
+            </summary>
+            <param name="valueOnInsert">The value on insert.</param>
+            <param name="valueOnDelete">The value on delete.</param>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.DataAnnotations.SoftDeleteAttribute.ValueOnInsert">
+            <summary>
+            Gets the value on insert.
+            </summary>
+            <value>
+            The value on insert.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.DataAnnotations.SoftDeleteAttribute.ValueOnDelete">
+            <summary>
+            Gets the value on delete.
+            </summary>
+            <value>
+            The value on delete.
+            </value>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.DataContext.IDataContext">
+            <summary>
+            Data Context Interface.
+            Intended to be used with Dependency Injection libraries and to simplify testing.
+            </summary>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.Create``1(``0)">
+            <summary>
+            Creates the specified entity.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <param name="entity">The entity.</param>
+            <returns>The created entity.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.Read``1(System.Object)">
+            <summary>
+            Reads the entity for the given type and identifier.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <param name="id">The identifier.</param>
+            <returns>The entity.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.ReadAll``1">
+            <summary>
+            Reads all entities of the specified type.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <returns>All entities of this type.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.ReadList``1(System.Object)">
+            <summary>
+            Reads all entities satisfying with properties that match the where condition.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <param name="whereConditions">The where conditions.</param>
+            <returns>All entities matching the where condition.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.Update``1(System.Object)">
+            <summary>
+            Updates the specified properties on the entity.
+            Key properties must be included in the properties object.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <param name="properties">The properties.</param>
+            <returns>The updated entity.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.Delete``1(System.Object)">
+            <summary>
+            Deletes an entity by identifier.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <param name="id">The identifier.</param>
+            <returns>The <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous delete operation.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.DeleteList``1(System.Object)">
+            <summary>
+            Deletes a list of entities that match the where condition.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <param name="whereConditions">The where conditions.</param>
+            <returns>The <see cref="T:System.Threading.Tasks.Task"/> representing the asynchronous delete operation.</returns>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.DataContext.InMemoryDataContext">
+            <summary>
+            In memory data context.  Provided to support a stub based approach to unit testing.
+            Can also be used for quick proof of concepts.
+            </summary>
+            <seealso cref="T:Dapper.SuaveExtensions.DataContext.IDataContext" />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.Create``1(``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.Delete``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.DeleteList``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.Read``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.ReadAll``1">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.ReadList``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.Update``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="T:Dapper.SuaveExtensions.Map.PropertyMap">
+            <summary>
+            Class the defines a property mapping.
+            </summary>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.PropertyInfo">
+            <summary>
+            Gets the property information.
+            </summary>
+            <value>
+            The property information.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.Property">
+            <summary>
+            Gets the property.
+            </summary>
+            <value>
+            The property.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.Column">
+            <summary>
+            Gets the column the property is mapped to.
+            </summary>
+            <value>
+            The column.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.ColumnSelect">
+            <summary>
+            Gets or the column select.
+            </summary>
+            <value>
+            The column select.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.IsKey">
+            <summary>
+            Gets a value indicating whether this instance is key.
+            </summary>
+            <value>
+              <c>true</c> if this instance is key; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.KeyType">
+            <summary>
+            Gets the type of the key.
+            </summary>
+            <value>
+            The type of the key.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.IsEditable">
+            <summary>
+            Gets a value indicating whether this property is editable, defaults to true.
+            If is editable is false, then this property will be excluded from updates.
+            </summary>
+            <value>
+              <c>true</c> if this instance is editable; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.IsReadOnly">
+            <summary>
+            Gets a value indicating whether this property is read-only.
+            This will exclude the property from inserts and updates.
+            </summary>
+            <value>
+              <c>true</c> if this instance is read-only; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.IsRequired">
+            <summary>
+            Gets a value indicating whether this instance is required.
+            </summary>
+            <value>
+              <c>true</c> if this instance is required; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.IsDateStamp">
+            <summary>
+            Gets a value indicating whether this instance is date stamp.
+            </summary>
+            <value>
+              <c>true</c> if this instance is date stamp; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.InsertedValue">
+            <summary>
+            Gets the soft delete value on insertion.
+            </summary>
+            <value>
+            The soft delete value on insertion.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.DeleteValue">
+            <summary>
+            Gets the soft delete value on deletion.
+            </summary>
+            <value>
+            The soft delete value on deletion.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.PropertyMap.IsSoftDelete">
+            <summary>
+            Gets a value indicating whether this instance is soft delete.
+            </summary>
+            <value>
+              <c>true</c> if this instance is soft delete; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.PropertyMap.LoadPropertyMap(System.Reflection.PropertyInfo)">
+            <summary>
+            Loads the property map.
+            </summary>
+            <param name="propertyInfo">The proerty info.</param>
+            <returns>The property map for this property.</returns>
+            <exception cref="T:System.ArgumentException">Readonly and Editable attributes specified with opposing values.</exception>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.Map.TypeMap">
+            <summary>
+            A class representing a type to database table mapping.
+            </summary>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.Type">
+            <summary>
+            Gets or sets the mapped type.
+            </summary>
+            <value>
+            The type.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.Schema">
+            <summary>
+            Gets or sets the schema this type is mapped to.
+            e.g. dbo.
+            </summary>
+            <value>
+            The schema.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.TableName">
+            <summary>
+            Gets or sets the name of the table this type is mapped to.
+            </summary>
+            <value>
+            The name of the table.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.TableIdentifier">
+            <summary>
+            Gets the table identifier.
+            i.e. the schema and table name combination.
+            </summary>
+            <value>
+            The table identifier.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.AllKeys">
+            <summary>
+            Gets the key properties.
+            </summary>
+            <value>
+            The key properties.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.SequentialKey">
+            <summary>
+            Gets the sequential key.
+            </summary>
+            <value>
+            The sequential key.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.HasSequentialKey">
+            <summary>
+            Gets a value indicating whether this instance has sequential key.
+            </summary>
+            <value>
+              <c>true</c> if this instance has sequential key; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.AssignedKeys">
+            <summary>
+            Gets the manual keys.
+            </summary>
+            <value>
+            The manual keys.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.HasManualKeys">
+            <summary>
+            Gets a value indicating whether this instance has manual keys.
+            </summary>
+            <value>
+              <c>true</c> if this instance has manual keys; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.IdentityKey">
+            <summary>
+            Gets the identity keys.
+            </summary>
+            <value>
+            The identity keys.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.HasIdentityKey">
+            <summary>
+            Gets a value indicating whether this instance has identity keys.
+            </summary>
+            <value>
+              <c>true</c> if this instance has identity keys; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.SelectProperties">
+            <summary>
+            Gets the select properties.
+            </summary>
+            <value>
+            The select properties.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.RequiredProperties">
+            <summary>
+            Gets the required properties.
+            </summary>
+            <value>
+            The required properties.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.InsertableProperties">
+            <summary>
+            Gets the insertable properties.
+            </summary>
+            <value>
+            The insertable properties.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.UpdateableProperties">
+            <summary>
+            Gets the updateable properties.
+            </summary>
+            <value>
+            The updateable properties.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.DateStampProperties">
+            <summary>
+            Gets or the date stamp properties.
+            </summary>
+            <value>
+            The date stamp properties.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.SoftDeleteProperty">
+            <summary>
+            Gets the soft delete property.
+            </summary>
+            <value>
+            The soft delete property.
+            </value>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.HasSoftDelete">
+            <summary>
+            Gets a value indicating whether this instance has soft delete.
+            </summary>
+            <value>
+              <c>true</c> if this instance has soft delete; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.GetTypeMap``1">
+            <summary>
+            Gets a type map from the cache or adds a new one to the cache.
+            </summary>
+            <typeparam name="T">The type of the type map.</typeparam>
+            <returns>The type map for this type.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.ValidateKeyProperties(System.Object)">
+            <summary>
+            Validates the key properties.
+            Converts to a dictionary when value type is passed and we have an identity key.
+            </summary>
+            <param name="id">The identifier.</param>
+            <exception cref="T:System.ArgumentException">Thrown if a key property is not passed on the object.</exception>
+            <returns>The validated key property bag.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceKeyObject(System.Object)">
+            <summary>
+            Coalesces a dictionary representing the primary key.
+            </summary>
+            <param name="propertyBag">The property bag.</param>
+            <returns>Dictionary representing the primary key.</returns>
+            <exception cref="T:System.ArgumentException">
+            Passed property bag is null
+            or
+            Failed to find key property {propertyMap.Property}.
+            </exception>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.ValidateWhereProperties(System.Object)">
+            <summary>
+            Validates the where properties.
+            </summary>
+            <param name="whereConditions">The where conditions.</param>
+            <returns>A list of validated property maps.</returns>
+            <exception cref="T:System.ArgumentException">
+            Please pass where conditions.
+            or
+            Please specify at least one property for a WHERE condition.
+            or
+            Failed to find property {property.Name}.
+            </exception>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.LoadTypeMapping``1">
+            <summary>
+            Loads the type mapping.
+            </summary>
+            <typeparam name="T">The type to create a mapping for.</typeparam>
+            <returns>A type mapping object.</returns>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder">
+            <summary>
+            Sql Builder interface is intented to be implemented for multiple database
+            engines.
+            </summary>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.EncapsulationFormat">
+            <summary>
+            Gets the format string for encapsulating identifiers.
+            For example in SQL Server identifers are wrapped in square brackets i.e. "[{0}]".
+            </summary>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildSelectAll(Dapper.SuaveExtensions.Map.TypeMap)">
+            <summary>
+            Builds the select statement.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The select all statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildSelectById(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <summary>
+            Builds a select statement with a where identifier equals clause.
+            </summary>
+            <param name="type">The type.</param>
+            <param name="id">The identifier.</param>
+            <returns>The select where identifier equals statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildSelectWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <summary>
+            Builds a select statement with a dynamic where clause.
+            </summary>
+            <param name="type">The type.</param>
+            <param name="whereConditions">The where conditions.</param>
+            <returns>The select where statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildInsert(Dapper.SuaveExtensions.Map.TypeMap)">
+            <summary>
+            Builds the insert statement.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The insert statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildUpdate(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <summary>
+            Builds a dynamic update statement.
+            </summary>
+            <param name="type">The type.</param>
+            <param name="updateProperties">The update properties.</param>
+            <returns>The update statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildDeleteById(Dapper.SuaveExtensions.Map.TypeMap)">
+            <summary>
+            Builds a delete where id equals statement.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The delete where id equals statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildDeleteWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <summary>
+            Builds a dynamic delete where statement.
+            </summary>
+            <param name="type">The type.</param>
+            <param name="whereConditions">The where conditions.</param>
+            <returns>The delete where statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildGetNextId(Dapper.SuaveExtensions.Map.TypeMap)">
+            <summary>
+            Builds the get next identifier.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The get next identifier select statement.</returns>
+        </member>
+        <member name="T:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder">
+            <summary>
+            ISqlDialect implementation for SQL Server.
+            </summary>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.EncapsulationFormat">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildSelectAll(Dapper.SuaveExtensions.Map.TypeMap)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildSelectById(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildSelectWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildDeleteById(Dapper.SuaveExtensions.Map.TypeMap)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildDeleteWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildInsert(Dapper.SuaveExtensions.Map.TypeMap)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildUpdate(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildGetNextId(Dapper.SuaveExtensions.Map.TypeMap)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <summary>
+            Builds the where clause from an anonymous object.
+            </summary>
+            <param name="type">The type map.</param>
+            <param name="whereConditions">An anonymous object containing the where conditions.</param>
+            <returns>The WHERE clause string.</returns>
+            <exception cref="T:System.ArgumentException">Argument exception throw if property in where conditions doesn't exist.</exception>
+        </member>
+        <member name="T:Dapper.SuaveCRUD">
+            <summary>
+            Static class providing Suave CRUD extension methods.
+            </summary>
+        </member>
+        <member name="M:Dapper.SuaveCRUD.Create``1(System.Data.IDbConnection,``0)">
+            <summary>
+            Inserts the specified entity.
+            </summary>
+            <typeparam name="T">The type to insert.</typeparam>
+            <param name="conn">The connection.</param>
+            <param name="entity">The entity.</param>
+            <returns>The inserted entity.</returns>
+        </member>
+        <member name="M:Dapper.SuaveCRUD.Read``1(System.Data.IDbConnection,System.Object)">
+            <summary>
+            Gets the instance of T from the database which has the specified identifier.
+            </summary>
+            <typeparam name="T">The type to retrieve from the database.</typeparam>
+            <param name="connection">The connection.</param>
+            <param name="id">The identifier.</param>
+            <returns>An instance of <typeparamref name="T"/> or null if no object has this id.</returns>
+        </member>
+        <member name="M:Dapper.SuaveCRUD.ReadAll``1(System.Data.IDbConnection)">
+            <summary>
+            Gets all instances of T from the database.
+            </summary>
+            <typeparam name="T">The type to retrieve from the database.</typeparam>
+            <param name="connection">The connection.</param>
+            <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
+        </member>
+        <member name="M:Dapper.SuaveCRUD.ReadList``1(System.Data.IDbConnection,System.Object)">
+            <summary>
+            Gets a list T from the database where T matches the properties of the whereConditions object.
+            </summary>
+            <typeparam name="T">The type to retrieve from the database.</typeparam>
+            <param name="connection">The connection.</param>
+            <param name="whereConditions">The where conditions.</param>
+            <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
+        </member>
+        <member name="M:Dapper.SuaveCRUD.Update``1(System.Data.IDbConnection,System.Object)">
+            <summary>
+            Updates the specified properties of an entity.
+            </summary>
+            <typeparam name="T">The type to update.</typeparam>
+            <param name="conn">The connection.</param>
+            <param name="properties">The properties to update (must include all key properties).</param>
+            <returns>The updated entity.</returns>
+        </member>
+        <member name="M:Dapper.SuaveCRUD.Delete``1(System.Data.IDbConnection,System.Object)">
+            <summary>
+            Deletes the specified entity type by identifier.
+            </summary>
+            <typeparam name="T">The entity type.</typeparam>
+            <param name="connection">The connection.</param>
+            <param name="id">The identifier.</param>
+            <returns><see cref="T:System.Threading.Tasks.Task"/> representing the deletion operation.</returns>
+        </member>
+        <member name="M:Dapper.SuaveCRUD.DeleteList``1(System.Data.IDbConnection,System.Object)">
+            <summary>
+            Deletes a list of the specified entity type by providing where conditions.
+            </summary>
+            <typeparam name="T">The entity type.</typeparam>
+            <param name="connection">The connection.</param>
+            <param name="whereConditions">The where conditions.</param>
+            <returns><see cref="T:System.Threading.Tasks.Task"/> representing the deletion operation.</returns>
+        </member>
+    </members>
+</doc>
