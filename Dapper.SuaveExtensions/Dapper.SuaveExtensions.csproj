@@ -20,6 +20,10 @@
     <DocumentationFile>C:\malcolm.johnston\git\util\Dapper.SuaveExtensions\Dapper.SuaveExtensions\Dapper.SuaveExtensions.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>C:\malcolm.johnston\git\util\Dapper.SuaveExtensions\Dapper.SuaveExtensions\Dapper.SuaveExtensions.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Dapper" Version="1.60.6" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
