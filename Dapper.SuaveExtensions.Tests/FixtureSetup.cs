@@ -1,12 +1,7 @@
-﻿// <copyright file="FixtureSetup.cs" company="InsideTravel Technology Ltd">
-// Copyright (c) InsideTravel Technology Ltd. All rights reserved.
-// </copyright>
-
-using System;
+﻿using System;
 using System.Data.SqlClient;
 using System.Threading;
 
-using Dapper;
 using NUnit.Framework;
 
 namespace Dapper.SuaveExtensions.Tests

@@ -44,13 +44,13 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                City city = await connection.Insert<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
+                City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
                 // Act
                 await connection.Delete<City>(new { city.CityId, });
 
                 // Assert
-                Assert.IsNull(await connection.Get<City>(new { city.CityId }));
+                Assert.IsNull(await connection.Read<City>(new { city.CityId }));
             }
         }
 
@@ -65,17 +65,17 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                await connection.Insert<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
-                await connection.Insert<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
-                await connection.Insert<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
-                await connection.Insert<City>(new City() { CityCode = "HAV", CityName = "Havant", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
+                await connection.Create<City>(new City() { CityCode = "HAV", CityName = "Havant", Area = "Hampshire" });
 
                 // Act
                 await connection.DeleteList<City>(new { Area = "Hampshire" });
 
                 // Assert
-                Assert.AreEqual(0, (await connection.GetList<City>(new { Area = "Hampshire" })).Count());
-                Assert.AreEqual(1, (await connection.GetAll<City>()).Count());
+                Assert.AreEqual(0, (await connection.ReadList<City>(new { Area = "Hampshire" })).Count());
+                Assert.AreEqual(1, (await connection.ReadAll<City>()).Count());
             }
         }
 
@@ -91,10 +91,10 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                await connection.Insert<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
-                await connection.Insert<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
-                await connection.Insert<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
-                await connection.Insert<City>(new City() { CityCode = "HAV", CityName = "Havant", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
+                await connection.Create<City>(new City() { CityCode = "HAV", CityName = "Havant", Area = "Hampshire" });
 
                 // Act / Assert
                 Assert.ThrowsAsync<ArgumentException>(async () => { await connection.DeleteList<City>(null); });
@@ -114,10 +114,10 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                await connection.Insert<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
-                await connection.Insert<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
-                await connection.Insert<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
-                await connection.Insert<City>(new City() { CityCode = "HAV", CityName = "Havant", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
+                await connection.Create<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
+                await connection.Create<City>(new City() { CityCode = "HAV", CityName = "Havant", Area = "Hampshire" });
 
                 // Act / Assert
                 Assert.ThrowsAsync<ArgumentException>(async () => { await connection.DeleteList<City>(new { Code = "BAS" }); });

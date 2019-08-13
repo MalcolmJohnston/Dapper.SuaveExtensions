@@ -1,8 +1,4 @@
-﻿// <copyright file="KeyType.cs" company="InsideTravel Technology Ltd">
-// Copyright (c) InsideTravel Technology Ltd. All rights reserved.
-// </copyright>
-
-namespace Dapper.SuaveExtensions.DataAnnotations
+﻿namespace Dapper.SuaveExtensions.DataAnnotations
 {
     /// <summary>
     /// Enumeration of supported primary key types for SQL generation.

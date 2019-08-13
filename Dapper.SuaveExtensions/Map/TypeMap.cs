@@ -1,13 +1,9 @@
-﻿// <copyright file="TypeMap.cs" company="InsideTravel Technology Ltd">
-// Copyright (c) InsideTravel Technology Ltd. All rights reserved.
-// </copyright>
-
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 using Dapper.SuaveExtensions.DataAnnotations;
 
@@ -18,6 +14,8 @@ namespace Dapper.SuaveExtensions.Map
     /// </summary>
     public class TypeMap
     {
+        private static ConcurrentDictionary<string, TypeMap> typeMapCache = new ConcurrentDictionary<string, TypeMap>();
+
         private IEnumerable<PropertyMap> allPropertyMaps;
 
         /// <summary>
@@ -191,11 +189,132 @@ namespace Dapper.SuaveExtensions.Map
         }
 
         /// <summary>
+        /// Gets a type map from the cache or adds a new one to the cache.
+        /// </summary>
+        /// <typeparam name="T">The type of the type map.</typeparam>
+        /// <returns>The type map for this type.</returns>
+        public static TypeMap GetTypeMap<T>()
+        {
+            string cacheKey = typeof(T).FullName;
+            if (!typeMapCache.ContainsKey(cacheKey))
+            {
+                typeMapCache[cacheKey] = TypeMap.LoadTypeMapping<T>();
+            }
+
+            return typeMapCache[cacheKey];
+        }
+
+        /// <summary>
+        /// Validates the key properties.
+        /// </summary>
+        /// <param name="id">The identifier.</param>
+        /// <exception cref="ArgumentException">Thrown if a key property is not passed on the object.</exception>
+        public void ValidateKeyProperties(object id)
+        {
+            if (id == null)
+            {
+                throw new ArgumentException("Passed identifier object is null.");
+            }
+
+            PropertyInfo[] propertyInfos = id.GetType().GetProperties();
+            foreach (PropertyMap propertyMap in this.AllKeys)
+            {
+                PropertyInfo pi = propertyInfos.Where(x => x.Name == propertyMap.Property).SingleOrDefault();
+
+                if (pi == null)
+                {
+                    throw new ArgumentException($"Failed to find key property {propertyMap.Property}.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Coalesces a dictionary representing the primary key.
+        /// </summary>
+        /// <param name="propertyBag">The property bag.</param>
+        /// <returns>Dictionary representing the primary key.</returns>
+        /// <exception cref="ArgumentException">
+        /// Passed property bag is null
+        /// or
+        /// Failed to find key property {propertyMap.Property}.
+        /// </exception>
+        public IDictionary<string, object> CoalesceKeyObject(object propertyBag)
+        {
+            if (propertyBag == null)
+            {
+                throw new ArgumentException("Passed property bag is null.");
+            }
+
+            IDictionary<string, object> key = new Dictionary<string, object>();
+            PropertyInfo[] propertyInfos = propertyBag.GetType().GetProperties();
+            foreach (PropertyMap propertyMap in this.AllKeys)
+            {
+                PropertyInfo pi = propertyInfos.Where(x => x.Name == propertyMap.Property).SingleOrDefault();
+
+                if (pi == null)
+                {
+                    throw new ArgumentException($"Failed to find key property {propertyMap.Property}.");
+                }
+
+                key.Add(propertyMap.Property, pi.GetValue(propertyBag));
+            }
+
+            return key;
+        }
+
+        /// <summary>
+        /// Validates the where properties.
+        /// </summary>
+        /// <param name="whereConditions">The where conditions.</param>
+        /// <returns>A list of validated property maps.</returns>
+        /// <exception cref="ArgumentException">
+        /// Please pass where conditions.
+        /// or
+        /// Please specify at least one property for a WHERE condition.
+        /// or
+        /// Failed to find property {property.Name}.
+        /// </exception>
+        public IList<PropertyMap> ValidateWhereProperties(object whereConditions)
+        {
+            if (whereConditions == null)
+            {
+                throw new ArgumentException("Please pass where conditions.");
+            }
+
+            // get the passed properties
+            PropertyInfo[] propertyInfos = whereConditions.GetType().GetProperties();
+
+            // check that we have at least one property/condition
+            if (propertyInfos == null || propertyInfos.Length == 0)
+            {
+                throw new ArgumentException("Please specify at least one property for a WHERE condition.");
+            }
+
+            // setup our list of property mappings that we will create the where clause from
+            List<PropertyMap> propertyMappings = new List<PropertyMap>();
+
+            foreach (PropertyInfo property in propertyInfos)
+            {
+                PropertyMap propertyMap = this.SelectProperties
+                                              .SingleOrDefault(x => x.Property == property.Name);
+
+                if (propertyMap == null)
+                {
+                    throw new ArgumentException($"Failed to find property {property.Name}.");
+                }
+
+                propertyMappings.Add(propertyMap);
+            }
+
+            return propertyMappings;
+        }
+
+        /// <summary>
         /// Loads the type mapping.
         /// </summary>
         /// <typeparam name="T">The type to create a mapping for.</typeparam>
         /// <returns>A type mapping object.</returns>
-        public static TypeMap LoadTypeMapping<T>()
+        private static TypeMap LoadTypeMapping<T>()
         {
             // get the type that we are mapping
             Type objectType = typeof(T);
@@ -269,99 +388,6 @@ namespace Dapper.SuaveExtensions.Map
             typeMap.DateStampProperties = typeMap.allPropertyMaps.Where(x => x.IsDateStamp).ToList();
 
             return typeMap;
-        }
-
-        /// <summary>
-        /// Validates the key properties.
-        /// </summary>
-        /// <param name="id">The identifier.</param>
-        /// <exception cref="ArgumentException">Thrown if a key property is not passed on the object.</exception>
-        public void ValidateKeyProperties(object id)
-        {
-            if (id == null)
-            {
-                throw new ArgumentException("Passed identifier object is null.");
-            }
-
-            PropertyInfo[] propertyInfos = id.GetType().GetProperties();
-            foreach (PropertyMap propertyMap in this.AllKeys)
-            {
-                PropertyInfo pi = propertyInfos.Where(x => x.Name == propertyMap.Property).SingleOrDefault();
-
-                if (pi == null)
-                {
-                    throw new ArgumentException($"Failed to find key property {propertyMap.Property}.");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Coalesces a dictionary representing the primary key.
-        /// </summary>
-        /// <param name="propertyBag">The property bag.</param>
-        /// <returns>Dictionary representing the primary key.</returns>
-        /// <exception cref="ArgumentException">
-        /// Passed property bag is null
-        /// or
-        /// Failed to find key property {propertyMap.Property}.
-        /// </exception>
-        public IDictionary<string, object> CoalesceKeyObject(object propertyBag)
-        {
-            if (propertyBag == null)
-            {
-                throw new ArgumentException("Passed property bag is null.");
-            }
-
-            IDictionary<string, object> key = new Dictionary<string, object>();
-            PropertyInfo[] propertyInfos = propertyBag.GetType().GetProperties();
-            foreach (PropertyMap propertyMap in this.AllKeys)
-            {
-                PropertyInfo pi = propertyInfos.Where(x => x.Name == propertyMap.Property).SingleOrDefault();
-
-                if (pi == null)
-                {
-                    throw new ArgumentException($"Failed to find key property {propertyMap.Property}.");
-                }
-
-                key.Add(propertyMap.Property, pi.GetValue(propertyBag));
-            }
-
-            return key;
-        }
-
-        public IList<PropertyMap> ValidateWhereProperties(object whereConditions)
-        {
-            if (whereConditions == null)
-            {
-                throw new ArgumentException("Please pass where conditions.");
-            }
-
-            // get the passed properties
-            PropertyInfo[] propertyInfos = whereConditions.GetType().GetProperties();
-
-            // check that we have at least one property/condition
-            if (propertyInfos == null || propertyInfos.Length == 0)
-            {
-                throw new ArgumentException("Please specify at least one property for a WHERE condition.");
-            }
-
-            // setup our list of property mappings that we will create the where clause from
-            List<PropertyMap> propertyMappings = new List<PropertyMap>();
-
-            foreach (PropertyInfo property in propertyInfos)
-            {
-                PropertyMap propertyMap = this.SelectProperties
-                                              .SingleOrDefault(x => x.Property == property.Name);
-
-                if (propertyMap == null)
-                {
-                    throw new ArgumentException($"Failed to find property {property.Name}.");
-                }
-
-                propertyMappings.Add(propertyMap);
-            }
-
-            return propertyMappings;
         }
     }
 }

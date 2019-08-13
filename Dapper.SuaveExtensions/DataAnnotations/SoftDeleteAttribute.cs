@@ -1,13 +1,9 @@
-﻿// <copyright file="SoftDeleteAttribute.cs" company="InsideTravel Technology Ltd">
-// Copyright (c) InsideTravel Technology Ltd. All rights reserved.
-// </copyright>
-
-using System;
+﻿using System;
 
 namespace Dapper.SuaveExtensions.DataAnnotations
 {
     /// <summary>
-    /// The Soft Delete attribute is used to denote a property on a POCO that is mapped to a column which indicates deletion of 
+    /// The Soft Delete attribute is used to denote a property on a POCO that is mapped to a column which indicates deletion of
     /// a row in the database.
     /// For example;
     ///     If the Property 'RecordStatus' has the Soft Delete attribute with an inserted value of 1 and a deleted value of 0

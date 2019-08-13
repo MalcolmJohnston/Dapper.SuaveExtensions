@@ -3,12 +3,9 @@
 // </copyright>
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 
 using System.Threading.Tasks;
 
@@ -22,81 +19,7 @@ namespace Dapper.SuaveExtensions
     /// </summary>
     public static class SuaveExtensions
     {
-        private static ConcurrentDictionary<string, TypeMap> typeMapCache =
-            new ConcurrentDictionary<string, TypeMap>();
-
         private static ISqlBuilder sqlBuilder = new TSqlBuilder();
-
-        /// <summary>
-        /// Gets the instance of T from the database which has the specified identifier.
-        /// </summary>
-        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
-        /// <param name="connection">The connection.</param>
-        /// <param name="id">The identifier.</param>
-        /// <returns>An instance of <typeparamref name="T"/> or null if no object has this id.</returns>
-        public static async Task<T> Get<T>(this IDbConnection connection, object id)
-        {
-            TypeMap type = GetTypeMap<T>();
-
-            // validate that all key properties are passed
-            type.ValidateKeyProperties(id);
-
-            return (await connection.QueryAsync<T>(sqlBuilder.BuildSelectById(type, id), id)
-                .ConfigureAwait(false))
-                .SingleOrDefault();
-        }
-
-        /// <summary>
-        /// Gets all instances of T from the database.
-        /// </summary>
-        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
-        /// <param name="connection">The connection.</param>
-        /// <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
-        public static async Task<IEnumerable<T>> GetAll<T>(this IDbConnection connection)
-        {
-            TypeMap type = GetTypeMap<T>();
-
-            return await connection.QueryAsync<T>(sqlBuilder.BuildSelectAll(type))
-                .ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Gets a list T from the database where T matches the properties of the whereConditions object.
-        /// </summary>
-        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
-        /// <param name="connection">The connection.</param>
-        /// <param name="whereConditions">The where conditions.</param>
-        /// <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
-        public static async Task<IEnumerable<T>> GetList<T>(this IDbConnection connection, object whereConditions)
-        {
-            TypeMap type = GetTypeMap<T>();
-
-            // validate that all key properties are passed
-            type.ValidateWhereProperties(whereConditions);
-
-            return await connection.QueryAsync<T>(
-                sqlBuilder.BuildSelectWhere(type, whereConditions),
-                whereConditions).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Deletes the specified entity type by identifier.
-        /// </summary>
-        /// <typeparam name="T">The entity type.</typeparam>
-        /// <param name="connection">The connection.</param>
-        /// <param name="id">The identifier.</param>
-        /// <returns><see cref="Task"/> representing the deletion operation.</returns>
-        public static async Task Delete<T>(this IDbConnection connection, object id)
-        {
-            TypeMap type = GetTypeMap<T>();
-
-            // validate the key properties
-            type.ValidateKeyProperties(id);
-
-            // delete
-            await connection.QueryAsync<T>(sqlBuilder.BuildDeleteById(type), id)
-                .ConfigureAwait(false);
-        }
 
         /// <summary>
         /// Inserts the specified entity.
@@ -105,9 +28,9 @@ namespace Dapper.SuaveExtensions
         /// <param name="conn">The connection.</param>
         /// <param name="entity">The entity.</param>
         /// <returns>The inserted entity.</returns>
-        public static async Task<T> Insert<T>(this IDbConnection conn, T entity)
+        public static async Task<T> Create<T>(this IDbConnection conn, T entity)
         {
-            TypeMap type = GetTypeMap<T>();
+            TypeMap type = TypeMap.GetTypeMap<T>();
 
             // if we have a sequential key then set the value
             if (type.HasSequentialKey)
@@ -169,6 +92,58 @@ namespace Dapper.SuaveExtensions
         }
 
         /// <summary>
+        /// Gets the instance of T from the database which has the specified identifier.
+        /// </summary>
+        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
+        /// <param name="connection">The connection.</param>
+        /// <param name="id">The identifier.</param>
+        /// <returns>An instance of <typeparamref name="T"/> or null if no object has this id.</returns>
+        public static async Task<T> Read<T>(this IDbConnection connection, object id)
+        {
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // validate that all key properties are passed
+            type.ValidateKeyProperties(id);
+
+            return (await connection.QueryAsync<T>(sqlBuilder.BuildSelectById(type, id), id)
+                .ConfigureAwait(false))
+                .SingleOrDefault();
+        }
+
+        /// <summary>
+        /// Gets all instances of T from the database.
+        /// </summary>
+        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
+        /// <param name="connection">The connection.</param>
+        /// <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
+        public static async Task<IEnumerable<T>> ReadAll<T>(this IDbConnection connection)
+        {
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            return await connection.QueryAsync<T>(sqlBuilder.BuildSelectAll(type))
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Gets a list T from the database where T matches the properties of the whereConditions object.
+        /// </summary>
+        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
+        /// <param name="connection">The connection.</param>
+        /// <param name="whereConditions">The where conditions.</param>
+        /// <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
+        public static async Task<IEnumerable<T>> ReadList<T>(this IDbConnection connection, object whereConditions)
+        {
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // validate that all key properties are passed
+            type.ValidateWhereProperties(whereConditions);
+
+            return await connection.QueryAsync<T>(
+                sqlBuilder.BuildSelectWhere(type, whereConditions),
+                whereConditions).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Updates the specified properties of an entity.
         /// </summary>
         /// <typeparam name="T">The type to update.</typeparam>
@@ -177,7 +152,7 @@ namespace Dapper.SuaveExtensions
         /// <returns>The updated entity.</returns>
         public static async Task<T> Update<T>(this IDbConnection conn, object properties)
         {
-            TypeMap type = GetTypeMap<T>();
+            TypeMap type = TypeMap.GetTypeMap<T>();
 
             // coalesce key property
             IDictionary<string, object> id = type.CoalesceKeyObject(properties);
@@ -193,6 +168,25 @@ namespace Dapper.SuaveExtensions
         }
 
         /// <summary>
+        /// Deletes the specified entity type by identifier.
+        /// </summary>
+        /// <typeparam name="T">The entity type.</typeparam>
+        /// <param name="connection">The connection.</param>
+        /// <param name="id">The identifier.</param>
+        /// <returns><see cref="Task"/> representing the deletion operation.</returns>
+        public static async Task Delete<T>(this IDbConnection connection, object id)
+        {
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // validate the key properties
+            type.ValidateKeyProperties(id);
+
+            // delete
+            await connection.QueryAsync<T>(sqlBuilder.BuildDeleteById(type), id)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Deletes a list of the specified entity type by providing where conditions.
         /// </summary>
         /// <typeparam name="T">The entity type.</typeparam>
@@ -201,7 +195,7 @@ namespace Dapper.SuaveExtensions
         /// <returns><see cref="Task"/> representing the deletion operation.</returns>
         public static async Task DeleteList<T>(this IDbConnection connection, object whereConditions)
         {
-            TypeMap type = GetTypeMap<T>();
+            TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate the key properties
             type.ValidateWhereProperties(whereConditions);
@@ -210,17 +204,6 @@ namespace Dapper.SuaveExtensions
             await connection.QueryAsync<T>(
                 sqlBuilder.BuildDeleteWhere(type, whereConditions),
                 whereConditions).ConfigureAwait(false);
-        }
-
-        private static TypeMap GetTypeMap<T>()
-        {
-            string cacheKey = typeof(T).FullName;
-            if (!typeMapCache.ContainsKey(cacheKey))
-            {
-                typeMapCache[cacheKey] = TypeMap.LoadTypeMapping<T>();
-            }
-
-            return typeMapCache[cacheKey];
         }
     }
 }

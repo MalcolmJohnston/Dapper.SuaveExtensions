@@ -1,9 +1,4 @@
-﻿// <copyright file="DateStampAttribute.cs" company="InsideTravel Technology Ltd">
-// Copyright (c) InsideTravel Technology Ltd. All rights reserved.
-// </copyright>
-
-using System;
-
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Dapper.SuaveExtensions.DataAnnotations

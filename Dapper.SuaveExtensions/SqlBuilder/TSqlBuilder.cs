@@ -1,8 +1,4 @@
-﻿// <copyright file="TSqlBuilder.cs" company="InsideTravel Technology Ltd">
-// Copyright (c) InsideTravel Technology Ltd. All rights reserved.
-// </copyright>
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +15,15 @@ namespace Dapper.SuaveExtensions.SqlBuilder
     /// </summary>
     public class TSqlBuilder : ISqlBuilder
     {
-        private ConcurrentDictionary<string, string> staticSqlStatementCache =
-            new ConcurrentDictionary<string, string>();
+        private ConcurrentDictionary<string, string> staticSqlStatementCache = new ConcurrentDictionary<string, string>();
+
+        /// <inheritdoc />
+        public string EncapsulationFormat
+        {
+            get { return "[{0}]"; }
+        }
+
+        /// <inheritdoc />
         public string BuildSelectAll(TypeMap type)
         {
             if (type == null)
@@ -43,6 +46,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             return this.staticSqlStatementCache[cacheKey];
         }
 
+        /// <inheritdoc />
         public string BuildSelectById(TypeMap type, object keyProperties)
         {
             if (type == null)
@@ -64,6 +68,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             return this.staticSqlStatementCache[cacheKey];
         }
 
+        /// <inheritdoc />
         public string BuildSelectWhere(TypeMap type, object whereConditions)
         {
             if (type == null)
@@ -76,11 +81,12 @@ namespace Dapper.SuaveExtensions.SqlBuilder
 
             StringBuilder sb = new StringBuilder(this.BuildSelectAll(type));
             sb.Append(" ");
-            sb.Append(this.BuildWhere(type, whereConditions));
+            sb.Append(BuildWhere(type, whereConditions));
 
             return sb.ToString();
         }
 
+        /// <inheritdoc />
         public string BuildDeleteById(TypeMap type)
         {
             if (type == null)
@@ -102,6 +108,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             return this.staticSqlStatementCache[cacheKey];
         }
 
+        /// <inheritdoc />
         public string BuildDeleteWhere(TypeMap type, object whereConditions)
         {
             if (type == null)
@@ -110,20 +117,12 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             }
 
             StringBuilder sb = new StringBuilder(this.BuildDelete(type));
-            sb.Append($" {this.BuildWhere(type, whereConditions)}");
+            sb.Append($" {BuildWhere(type, whereConditions)}");
 
             return sb.ToString();
         }
 
-        public string EncapsulationFormat
-        {
-            get { return "[{0}]"; }
-        }
-
-        /// <summary>
-        /// Builds the insert statement.
-        /// </summary>
-        /// <returns>The insert statement.</returns>
+        /// <inheritdoc />
         public string BuildInsert(TypeMap type)
         {
             if (type == null)
@@ -161,11 +160,17 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             return this.staticSqlStatementCache[cacheKey];
         }
 
+        /// <inheritdoc />
         public string BuildUpdate(TypeMap type, object properties)
         {
             if (type == null)
             {
                 throw new ArgumentException("Please provide a non-null TypeMap.");
+            }
+
+            if (properties == null)
+            {
+                throw new ArgumentException("Please provide one or more properties to update.");
             }
 
             string cacheKey = $"{type.Type.FullName}_Insert";
@@ -189,7 +194,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             // check we have properties to update
             if (updateMaps.Count == 0)
             {
-                throw new ArgumentException("Please pass some updateable properties.");
+                throw new ArgumentException("Please provide one or more updateable properties.");
             }
 
             // build the update sql
@@ -221,6 +226,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             return sb.ToString();
         }
 
+        /// <inheritdoc />
         public string BuildGetNextId(TypeMap type)
         {
             if (type == null)
@@ -230,8 +236,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
 
             if (!type.HasSequentialKey)
             {
-                throw new ArgumentException(
-                    "Cannot generate get next id sql for type that does not have a sequential key.");
+                throw new ArgumentException("Cannot generate get next id sql for type that does not have a sequential key.");
             }
 
             string cacheKey = $"{type.Type.FullName}_GetNextId";
@@ -244,7 +249,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
 
                 if (type.HasManualKeys)
                 {
-                    sb.Append(this.BuildWhere(type.AssignedKeys.ToList()));
+                    sb.Append(BuildWhere(type.AssignedKeys.ToList()));
                 }
 
                 this.staticSqlStatementCache[cacheKey] = sb.ToString();
@@ -253,25 +258,14 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             return this.staticSqlStatementCache[cacheKey];
         }
 
-        private string BuildWhereIdEquals(TypeMap type)
-        {
-            string cacheKey = $"{type.Type.FullName}_WhereIdEquals";
-
-            if (!this.staticSqlStatementCache.ContainsKey(cacheKey))
-            {
-                this.staticSqlStatementCache[cacheKey] = this.BuildWhere(type.AllKeys);
-            }
-
-            return this.staticSqlStatementCache[cacheKey];
-        }
-
         /// <summary>
         /// Builds the where clause from an anonymous object.
         /// </summary>
+        /// <param name="type">The type map.</param>
         /// <param name="whereConditions">An anonymous object containing the where conditions.</param>
         /// <returns>The WHERE clause string.</returns>
         /// <exception cref="ArgumentException">Argument exception throw if property in where conditions doesn't exist.</exception>
-        private string BuildWhere(TypeMap type, object whereConditions)
+        private static string BuildWhere(TypeMap type, object whereConditions)
         {
             if (whereConditions == null)
             {
@@ -283,10 +277,10 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             IList<PropertyMap> properties = type.ValidateWhereProperties(whereConditions);
 
             // return the WHERE clause
-            return this.BuildWhere(properties);
+            return BuildWhere(properties);
         }
 
-        private string BuildWhere(IList<PropertyMap> properties)
+        private static string BuildWhere(IList<PropertyMap> properties)
         {
             if (properties == null || properties.Count == 0)
             {
@@ -308,6 +302,18 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             }
 
             return sb.ToString();
+        }
+
+        private string BuildWhereIdEquals(TypeMap type)
+        {
+            string cacheKey = $"{type.Type.FullName}_WhereIdEquals";
+
+            if (!this.staticSqlStatementCache.ContainsKey(cacheKey))
+            {
+                this.staticSqlStatementCache[cacheKey] = BuildWhere(type.AllKeys);
+            }
+
+            return this.staticSqlStatementCache[cacheKey];
         }
 
         private string BuildDelete(TypeMap type)

@@ -43,7 +43,7 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                City city = await connection.Insert<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
+                City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
                 // Act
                 City basVegas = await connection.Update<City>(new { city.CityId, CityName = "Bas Vegas!" });
@@ -66,7 +66,7 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                City city = await connection.Insert<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
+                City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
                 // Act
                 City basVegas = await connection.Update<City>(new
@@ -99,7 +99,7 @@ namespace Dapper.SuaveExtensions.Tests
                 // Arrange
 
                 // insert row
-                DateStamp row = await connection.Insert(new DateStamp() { Name = "Key", Value = "Value" })
+                DateStamp row = await connection.Create(new DateStamp() { Name = "Key", Value = "Value" })
                     .ConfigureAwait(false);
 
                 // sleep so that insert date and update date will be different when update called
@@ -131,7 +131,7 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                SoftDelete softDelete = await connection.Insert<SoftDelete>(new SoftDelete()).ConfigureAwait(false);
+                SoftDelete softDelete = await connection.Create<SoftDelete>(new SoftDelete()).ConfigureAwait(false);
 
                 // Act / Assert
                 Assert.ThrowsAsync<ArgumentException>(async () =>
@@ -153,7 +153,7 @@ namespace Dapper.SuaveExtensions.Tests
                 connection.Open();
 
                 // Arrange
-                ReadOnly readOnly = await connection.Insert<ReadOnly>(new ReadOnly()
+                ReadOnly readOnly = await connection.Create<ReadOnly>(new ReadOnly()
                 {
                     Editable = "Hello",
                     ReadOnlyProperty = "World"
