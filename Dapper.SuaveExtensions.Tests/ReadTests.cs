@@ -39,7 +39,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// Test that we can execute Get All when the Model is mapped with an Identity column.
         /// </summary>
         [Test]
-        public async Task Get_All_With_Identity()
+        public async Task Read_All_With_Identity()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -64,7 +64,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_All_With_Assigned()
+        public async Task Read_All_With_Assigned()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -87,7 +87,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_By_Id_With_Identity()
+        public async Task Read_By_Id_With_Identity()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -113,7 +113,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_By_Id_With_Identity_Single_Typed_Argument()
+        public async Task Read_By_Id_With_Identity_Single_Typed_Argument()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -138,7 +138,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_By_Id_With_Assigned()
+        public async Task Read_By_Id_With_Assigned()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -162,7 +162,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_By_Id_With_Assigned_Single_Typed_Argument()
+        public async Task Read_By_Id_With_Assigned_Single_Typed_Argument()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {
@@ -186,7 +186,7 @@ namespace Dapper.SuaveExtensions.Tests
         /// </summary>
         /// <returns></returns>
         [Test]
-        public async Task Get_By_Where_Condition()
+        public async Task Read_By_Where_Condition()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {

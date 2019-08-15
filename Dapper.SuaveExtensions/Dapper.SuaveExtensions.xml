@@ -175,6 +175,14 @@
             </summary>
             <seealso cref="T:Dapper.SuaveExtensions.DataContext.IDataContext" />
         </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.AddOrUpdateData``1(System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            Adds test data for the specific type.
+            If data already exists it will be overwritten.
+            </summary>
+            <typeparam name="T">The type of the test data.</typeparam>
+            <param name="data">The data.</param>
+        </member>
         <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.Create``1(``0)">
             <inheritdoc />
         </member>

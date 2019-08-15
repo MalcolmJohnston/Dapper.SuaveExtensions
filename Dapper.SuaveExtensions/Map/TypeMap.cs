@@ -219,29 +219,34 @@ namespace Dapper.SuaveExtensions.Map
                 throw new ArgumentException("Passed identifier object is null.");
             }
 
+            // create dictionary
+            ExpandoObject eo = new ExpandoObject();
+            IDictionary<string, object> keys = eo as IDictionary<string, object>;
+
             // if we have a single key on our dto and the passed id object is the same type as the key
             // then return a dictionary indexed on the key property name
             if (this.AllKeys.Count() == 1 && this.AllKeys.Single().PropertyInfo.PropertyType == id.GetType())
             {
-                return new Dictionary<string, object>()
-                {
-                    { this.AllKeys.Single().Property, id }
-                };
+                keys.Add(this.AllKeys.Single().Property, id);
             }
-
-            // otherwise iterate through all properties and check we have all key properties
-            PropertyInfo[] propertyInfos = id.GetType().GetProperties();
-            foreach (PropertyMap propertyMap in this.AllKeys)
+            else
             {
-                PropertyInfo pi = propertyInfos.Where(x => x.Name == propertyMap.Property).SingleOrDefault();
-
-                if (pi == null)
+                // otherwise iterate through all properties and check we have all key properties
+                PropertyInfo[] propertyInfos = id.GetType().GetProperties();
+                foreach (PropertyMap propertyMap in this.AllKeys)
                 {
-                    throw new ArgumentException($"Failed to find key property {propertyMap.Property}.");
+                    PropertyInfo pi = propertyInfos.Where(x => x.Name == propertyMap.Property).SingleOrDefault();
+
+                    if (pi == null)
+                    {
+                        throw new ArgumentException($"Failed to find key property {propertyMap.Property}.");
+                    }
+
+                    keys.Add(propertyMap.Property, pi.GetValue(id));
                 }
             }
 
-            return id;
+            return eo;
         }
 
         /// <summary>

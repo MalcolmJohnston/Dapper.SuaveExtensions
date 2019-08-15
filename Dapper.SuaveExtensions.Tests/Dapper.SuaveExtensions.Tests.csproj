@@ -9,8 +9,8 @@
     <ProjectGuid>{B34C85F9-ABE2-46C6-BB92-AD5CA7C75ADE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NssCRUD.Test</RootNamespace>
-    <AssemblyName>NssCRUD.Test</AssemblyName>
+    <RootNamespace>Dapper.SuaveExtensions.Tests</RootNamespace>
+    <AssemblyName>Dapper.SuaveExtensions.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataContext\InMemory\ReadTests.cs" />
     <Compile Include="FixtureSetup.cs" />
     <Compile Include="Models\DateStamp.cs" />
     <Compile Include="Models\ReadOnly.cs" />
@@ -80,6 +81,7 @@
       <Name>Dapper.SuaveExtensions</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
