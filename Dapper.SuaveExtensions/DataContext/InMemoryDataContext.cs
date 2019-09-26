@@ -101,7 +101,12 @@ namespace Dapper.SuaveExtensions.DataContext
         /// <inheritdoc />
         public Task<IEnumerable<T>> ReadAll<T>()
         {
-            throw new NotImplementedException();
+            if (dataStore.ContainsKey(typeof(T).FullName))
+            {
+                return Task.FromResult((IEnumerable<T>)dataStore[typeof(T).FullName]);
+            }
+
+            return Task.FromResult(new T[0].AsEnumerable());
         }
 
         /// <inheritdoc />
