@@ -128,7 +128,7 @@ namespace Dapper
         {
             TypeMap type = TypeMap.GetTypeMap<T>();
 
-            // validate that all key properties are passed
+            // validate all properties passed
             type.ValidateWhereProperties(whereConditions);
 
             return await connection.QueryAsync<T>(

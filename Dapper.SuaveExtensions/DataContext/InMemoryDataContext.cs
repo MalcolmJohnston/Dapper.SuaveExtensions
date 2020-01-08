@@ -35,19 +35,121 @@ namespace Dapper.SuaveExtensions.DataContext
         /// <inheritdoc />
         public Task<T> Create<T>(T entity)
         {
-            throw new NotImplementedException();
+            // get the type map
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // create the object
+            T obj = Activator.CreateInstance<T>();
+
+            // get the current list for this type
+            IList<T> list = GetData<T>();
+            IQueryable<T> linqList = list.AsQueryable();
+
+            // if we have a sequential key then set the value
+            if (type.HasSequentialKey)
+            {
+                // initialise the sequential key value
+                int sequentialKeyValue = 0;
+
+                // create a list of objects that already have their sequential key set
+                List<T> existingCandidates = new List<T>(list);
+
+                if (existingCandidates.Count() > 0)
+                {
+                    if (type.AssignedKeys.Count() > 0)
+                    {
+                        // if this type has assigned keys then filter out objects from our candidates that do not have
+                        // matching assigned keys
+                        IDictionary<string, object> assignedValues = type.AssignedKeys
+                            .Select(kvp => new KeyValuePair<string, object>(kvp.Property, kvp.PropertyInfo.GetValue(entity)))
+                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                        existingCandidates = this.ReadList<T>(assignedValues).GetAwaiter().GetResult().ToList();
+                    }
+
+                    // now get the last item that was added to the list in order of sequential key
+                    T lastIn = ((IQueryable<T>)existingCandidates).OrderByDescending<T>(type.SequentialKey.Property).FirstOrDefault();
+                    if (lastIn != null)
+                    {
+                        sequentialKeyValue = (int)type.SequentialKey.PropertyInfo.GetValue(lastIn);
+                    }
+                }
+
+                // increment and set the sequential key value on the object
+                type.SequentialKey.PropertyInfo.SetValue(obj, sequentialKeyValue++);
+            }
+            else if (type.HasIdentityKey)
+            {
+                // initialise the identity key value
+                int identityKeyValue = 0;
+
+                if (linqList.Count() > 0)
+                {
+                    // now get the last item that was added to the list in order of sequential key
+                    T lastIn = linqList.OrderByDescending<T>(type.SequentialKey.Property).FirstOrDefault();
+                    if (lastIn != null)
+                    {
+                        identityKeyValue = (int)type.SequentialKey.PropertyInfo.GetValue(lastIn);
+                    }
+                }
+
+                // increment and set the sequential key value on the object
+                type.SequentialKey.PropertyInfo.SetValue(obj, identityKeyValue++);
+            }
+
+            // now set any date stamp properties
+            foreach (PropertyMap dateStampProperty in type.DateStampProperties)
+            {
+                dateStampProperty.PropertyInfo.SetValue(entity, DateTime.Now);
+            }
+
+            // and any soft delete properties
+            if (type.HasSoftDelete)
+            {
+                type.SoftDeleteProperty.PropertyInfo.SetValue(
+                    entity,
+                    type.SoftDeleteProperty.InsertedValue);
+            }
+
+            // finally add the item to the list
+            list.Add(entity);
+
+            return Task.FromResult(entity);
         }
 
         /// <inheritdoc />
         public Task Delete<T>(object id)
         {
-            throw new NotImplementedException();
+            // get the existing object
+            T obj = this.Read<T>(id).GetAwaiter().GetResult();
+
+            // check the object is not null (i.e. it exists in the collection)
+            if (obj != null)
+            {
+                // remove the object from the collection
+                IList<T> list = GetData<T>();
+                list.Remove(obj);
+            }
+
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
         public Task DeleteList<T>(object whereConditions)
         {
-            throw new NotImplementedException();
+            // get the existing objects
+            IEnumerable<T> objects = this.ReadList<T>(whereConditions).GetAwaiter().GetResult();
+
+            if (objects.Count() > 0)
+            {
+                IList<T> list = GetData<T>();
+                foreach (T obj in objects)
+                {
+                    list.Remove(obj);
+                }
+            }
+
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
@@ -57,45 +159,9 @@ namespace Dapper.SuaveExtensions.DataContext
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate the key
-            id = type.ValidateKeyProperties(id);
+            type.ValidateKeyProperties(id);
 
-            // get the data to query
-            IList<T> list = GetData<T>();
-            IQueryable<T> data = GetData<T>().AsQueryable<T>();
-
-            // if no items then nothing to query
-            if (data.Count() == 0)
-            {
-                return null;
-            }
-
-            // x =>
-            ParameterExpression parameter = Expression.Parameter(typeof(T), "x");
-            BinaryExpression body = null;
-            foreach (string key in ((IDictionary<string, object>)id).Keys)
-            {
-                // add a paramater equals expression for each property in the key
-                PropertyMap pm = type.AllKeys.Single(x => x.Property == key);
-                object value = ((IDictionary<string, object>)id)[key];
-
-                // x.Property
-                MemberExpression member = Expression.Property(parameter, key);
-                ConstantExpression constant = Expression.Constant(value);
-
-                // x.Property = Value
-                if (body == null)
-                {
-                    body = Expression.Equal(member, constant);
-                }
-                else
-                {
-                    body = Expression.AndAlso(body, Expression.Equal(member, constant));
-                }
-            }
-
-            var finalExpression = Expression.Lambda<Func<T, bool>>(body, parameter);
-
-            return Task.FromResult(data.Where(finalExpression).SingleOrDefault());
+            return Task.FromResult(this.ReadWhere<T>(id).SingleOrDefault());
         }
 
         /// <inheritdoc />
@@ -112,13 +178,48 @@ namespace Dapper.SuaveExtensions.DataContext
         /// <inheritdoc />
         public Task<IEnumerable<T>> ReadList<T>(object whereConditions)
         {
-            throw new NotImplementedException();
+            // get the type map
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // validate the where conditions
+            type.ValidateWhereProperties(whereConditions);
+
+            return Task.FromResult(this.ReadWhere<T>(whereConditions));
         }
 
         /// <inheritdoc />
         public Task<T> Update<T>(object properties)
         {
-            throw new NotImplementedException();
+            // get the type map
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // validate the key
+            object id = type.ValidateKeyProperties(properties);
+
+            // get the existing object
+            T obj = this.Read<T>(id).GetAwaiter().GetResult();
+
+            if (obj != null)
+            {
+                // find the properties to update
+                IDictionary<string, object> allProps = (IDictionary<string, object>)properties;
+                IDictionary<string, object> idProps = type.CoalesceKeyObject(id);
+                IDictionary<string, object> updateProps = allProps.Where(kvp => !idProps.ContainsKey(kvp.Key))
+                                                                  .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                // update the properties
+                foreach (string propertyName in updateProps.Keys)
+                {
+                    PropertyMap propertyMap = type.UpdateableProperties.Where(x => x.Property == propertyName).SingleOrDefault();
+
+                    if (propertyMap != null)
+                    {
+                        propertyMap.PropertyInfo.SetValue(obj, updateProps[propertyName]);
+                    }
+                }
+            }
+
+            return Task.FromResult(obj);
         }
 
         private static IList<T> GetData<T>()
@@ -131,6 +232,50 @@ namespace Dapper.SuaveExtensions.DataContext
             }
 
             return dataStore[cacheKey] as IList<T>;
+        }
+
+        private IEnumerable<T> ReadWhere<T>(object properties)
+        {
+            // get the type map
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // get the data to query
+            IList<T> list = GetData<T>();
+            IQueryable<T> data = GetData<T>().AsQueryable<T>();
+
+            // return an empty enumerable if no objects in collection
+            if (data.Count() == 0)
+            {
+                return new T[0];
+            }
+
+            // x =>
+            ParameterExpression parameter = Expression.Parameter(typeof(T), "x");
+            BinaryExpression body = null;
+            foreach (string propertyName in ((IDictionary<string, object>)properties).Keys)
+            {
+                // add a paramater equals expression for each property in the property bag
+                PropertyMap pm = type.AllKeys.Single(x => x.Property == propertyName);
+                object value = ((IDictionary<string, object>)properties)[propertyName];
+
+                // x.Property
+                MemberExpression member = Expression.Property(parameter, propertyName);
+                ConstantExpression constant = Expression.Constant(value);
+
+                // x.Property = Value
+                if (body == null)
+                {
+                    body = Expression.Equal(member, constant);
+                }
+                else
+                {
+                    body = Expression.AndAlso(body, Expression.Equal(member, constant));
+                }
+            }
+
+            var finalExpression = Expression.Lambda<Func<T, bool>>(body, parameter);
+
+            return data.Where(finalExpression).AsEnumerable();
         }
     }
 }

@@ -171,7 +171,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
                 throw new ArgumentException("Please provide one or more properties to update.");
             }
 
-            string cacheKey = $"{type.Type.FullName}_Insert";
+            string cacheKey = $"{type.Type.FullName}_Update";
 
             // build list of columns to update
             List<PropertyMap> updateMaps = new List<PropertyMap>();
