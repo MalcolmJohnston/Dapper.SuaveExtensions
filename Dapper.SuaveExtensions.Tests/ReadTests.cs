@@ -83,11 +83,10 @@ namespace Dapper.SuaveExtensions.Tests
         }
 
         /// <summary>
-        /// Gets the by identifier with identity.
+        /// Test that we can get an entity with a single identity key using the property bag approach.
         /// </summary>
-        /// <returns></returns>
         [Test]
-        public async Task Read_By_Id_With_Identity()
+        public async Task Read_By_Id_With_Identity_Property_Bag()
         {
             using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
             {

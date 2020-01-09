@@ -129,7 +129,7 @@ namespace Dapper
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate all properties passed
-            type.ValidateWhereProperties(whereConditions);
+            type.ValidateWhereProperties(type.CoalesceObject(whereConditions));
 
             return await connection.QueryAsync<T>(
                 sqlBuilder.BuildSelectWhere(type, whereConditions),

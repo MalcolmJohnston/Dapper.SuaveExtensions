@@ -19,7 +19,7 @@ namespace Dapper.SuaveExtensions.DataContext
     /// <seealso cref="Dapper.SuaveExtensions.DataContext.IDataContext" />
     public class InMemoryDataContext : IDataContext
     {
-        private static ConcurrentDictionary<string, IList> dataStore = new ConcurrentDictionary<string, IList>();
+        private ConcurrentDictionary<string, IList> dataStore = new ConcurrentDictionary<string, IList>();
 
         /// <summary>
         /// Adds test data for the specific type.
@@ -27,9 +27,9 @@ namespace Dapper.SuaveExtensions.DataContext
         /// </summary>
         /// <typeparam name="T">The type of the test data.</typeparam>
         /// <param name="data">The data.</param>
-        public static void AddOrUpdateData<T>(IEnumerable<T> data)
+        public void AddOrUpdate<T>(IEnumerable<T> data)
         {
-            dataStore[typeof(T).FullName] = new List<T>(data);
+            this.dataStore[typeof(T).FullName] = new List<T>(data);
         }
 
         /// <inheritdoc />
@@ -38,11 +38,8 @@ namespace Dapper.SuaveExtensions.DataContext
             // get the type map
             TypeMap type = TypeMap.GetTypeMap<T>();
 
-            // create the object
-            T obj = Activator.CreateInstance<T>();
-
             // get the current list for this type
-            IList<T> list = GetData<T>();
+            IList<T> list = this.GetData<T>();
             IQueryable<T> linqList = list.AsQueryable();
 
             // if we have a sequential key then set the value
@@ -76,7 +73,7 @@ namespace Dapper.SuaveExtensions.DataContext
                 }
 
                 // increment and set the sequential key value on the object
-                type.SequentialKey.PropertyInfo.SetValue(obj, sequentialKeyValue++);
+                type.SequentialKey.PropertyInfo.SetValue(entity, sequentialKeyValue + 1);
             }
             else if (type.HasIdentityKey)
             {
@@ -86,15 +83,15 @@ namespace Dapper.SuaveExtensions.DataContext
                 if (linqList.Count() > 0)
                 {
                     // now get the last item that was added to the list in order of sequential key
-                    T lastIn = linqList.OrderByDescending<T>(type.SequentialKey.Property).FirstOrDefault();
+                    T lastIn = linqList.OrderByDescending<T>(type.IdentityKey.Property).FirstOrDefault();
                     if (lastIn != null)
                     {
-                        identityKeyValue = (int)type.SequentialKey.PropertyInfo.GetValue(lastIn);
+                        identityKeyValue = (int)type.IdentityKey.PropertyInfo.GetValue(lastIn);
                     }
                 }
 
                 // increment and set the sequential key value on the object
-                type.SequentialKey.PropertyInfo.SetValue(obj, identityKeyValue++);
+                type.IdentityKey.PropertyInfo.SetValue(entity, identityKeyValue + 1);
             }
 
             // now set any date stamp properties
@@ -127,7 +124,7 @@ namespace Dapper.SuaveExtensions.DataContext
             if (obj != null)
             {
                 // remove the object from the collection
-                IList<T> list = GetData<T>();
+                IList<T> list = this.GetData<T>();
                 list.Remove(obj);
             }
 
@@ -142,7 +139,7 @@ namespace Dapper.SuaveExtensions.DataContext
 
             if (objects.Count() > 0)
             {
-                IList<T> list = GetData<T>();
+                IList<T> list = this.GetData<T>();
                 foreach (T obj in objects)
                 {
                     list.Remove(obj);
@@ -159,17 +156,17 @@ namespace Dapper.SuaveExtensions.DataContext
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate the key
-            type.ValidateKeyProperties(id);
+            id = type.ValidateKeyProperties(id);
 
-            return Task.FromResult(this.ReadWhere<T>(id).SingleOrDefault());
+            return Task.FromResult(this.ReadWhere<T>((IDictionary<string, object>)id).SingleOrDefault());
         }
 
         /// <inheritdoc />
         public Task<IEnumerable<T>> ReadAll<T>()
         {
-            if (dataStore.ContainsKey(typeof(T).FullName))
+            if (this.dataStore.ContainsKey(typeof(T).FullName))
             {
-                return Task.FromResult((IEnumerable<T>)dataStore[typeof(T).FullName]);
+                return Task.FromResult((IEnumerable<T>)this.dataStore[typeof(T).FullName]);
             }
 
             return Task.FromResult(new T[0].AsEnumerable());
@@ -182,9 +179,10 @@ namespace Dapper.SuaveExtensions.DataContext
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate the where conditions
+            whereConditions = type.CoalesceObject(whereConditions);
             type.ValidateWhereProperties(whereConditions);
 
-            return Task.FromResult(this.ReadWhere<T>(whereConditions));
+            return Task.FromResult(this.ReadWhere<T>((IDictionary<string, object>)whereConditions));
         }
 
         /// <inheritdoc />
@@ -222,26 +220,26 @@ namespace Dapper.SuaveExtensions.DataContext
             return Task.FromResult(obj);
         }
 
-        private static IList<T> GetData<T>()
+        private IList<T> GetData<T>()
         {
             string cacheKey = typeof(T).FullName;
 
-            if (!dataStore.ContainsKey(cacheKey))
+            if (!this.dataStore.ContainsKey(cacheKey))
             {
-                dataStore[cacheKey] = new List<T>();
+                this.dataStore[cacheKey] = new List<T>();
             }
 
-            return dataStore[cacheKey] as IList<T>;
+            return this.dataStore[cacheKey] as IList<T>;
         }
 
-        private IEnumerable<T> ReadWhere<T>(object properties)
+        private IEnumerable<T> ReadWhere<T>(IDictionary<string, object> properties)
         {
             // get the type map
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // get the data to query
-            IList<T> list = GetData<T>();
-            IQueryable<T> data = GetData<T>().AsQueryable<T>();
+            IList<T> list = this.GetData<T>();
+            IQueryable<T> data = this.GetData<T>().AsQueryable<T>();
 
             // return an empty enumerable if no objects in collection
             if (data.Count() == 0)
@@ -252,15 +250,14 @@ namespace Dapper.SuaveExtensions.DataContext
             // x =>
             ParameterExpression parameter = Expression.Parameter(typeof(T), "x");
             BinaryExpression body = null;
-            foreach (string propertyName in ((IDictionary<string, object>)properties).Keys)
+            foreach (string propertyName in properties.Keys)
             {
                 // add a paramater equals expression for each property in the property bag
-                PropertyMap pm = type.AllKeys.Single(x => x.Property == propertyName);
-                object value = ((IDictionary<string, object>)properties)[propertyName];
+                PropertyMap pm = type.AllProperties[propertyName];
 
                 // x.Property
-                MemberExpression member = Expression.Property(parameter, propertyName);
-                ConstantExpression constant = Expression.Constant(value);
+                MemberExpression member = Expression.Property(parameter, pm.Property);
+                ConstantExpression constant = Expression.Constant(properties[propertyName]);
 
                 // x.Property = Value
                 if (body == null)
