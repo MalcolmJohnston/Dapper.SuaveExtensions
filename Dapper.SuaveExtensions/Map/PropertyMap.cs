@@ -199,10 +199,9 @@ namespace Dapper.SuaveExtensions.Map
             pm.IsSoftDelete = softDeleteAttribute != null;
 
             // set read-only / editable
-            // if property is a date-stamp, identity, guid or sequential key then cannot be
+            // if property is identity, guid or sequential key then cannot be
             // editable and must be read-only
-            if (pm.KeyType == KeyType.Identity || pm.KeyType == KeyType.Guid ||
-                pm.KeyType == KeyType.Sequential || pm.IsDateStamp)
+            if (pm.KeyType == KeyType.Identity || pm.KeyType == KeyType.Guid || pm.KeyType == KeyType.Sequential)
             {
                 pm.IsReadOnly = true;
                 pm.IsEditable = false;

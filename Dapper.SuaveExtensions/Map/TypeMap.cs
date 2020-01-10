@@ -279,8 +279,7 @@ namespace Dapper.SuaveExtensions.Map
             PropertyInfo[] propertyInfos = propertyBag.GetType().GetProperties();
             foreach (PropertyInfo propertyInfo in propertyInfos)
             {
-                PropertyMap pm = this.AllProperties[propertyInfo.Name];
-                if (pm == null)
+                if (!this.AllProperties.TryGetValue(propertyInfo.Name, out PropertyMap pm))
                 {
                     throw new ArgumentException($"Failed to find property {propertyInfo.Name}.");
                 }

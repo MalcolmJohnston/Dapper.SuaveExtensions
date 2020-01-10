@@ -2,8 +2,11 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;
+
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -45,14 +48,16 @@ namespace Dapper.SuaveExtensions.DataContext
             // if we have a sequential key then set the value
             if (type.HasSequentialKey)
             {
-                // initialise the sequential key value
-                int sequentialKeyValue = 0;
+                // alias the property info
+                PropertyInfo pi = type.SequentialKey.PropertyInfo;
 
-                // create a list of objects that already have their sequential key set
-                List<T> existingCandidates = new List<T>(list);
+                // initialise the key value
+                dynamic keyValue = Activator.CreateInstance(pi.PropertyType);
 
-                if (existingCandidates.Count() > 0)
+                // check for existing entities
+                if (list.Any())
                 {
+                    List<T> existingEntities = new List<T>(list);
                     if (type.AssignedKeys.Count() > 0)
                     {
                         // if this type has assigned keys then filter out objects from our candidates that do not have
@@ -61,43 +66,43 @@ namespace Dapper.SuaveExtensions.DataContext
                             .Select(kvp => new KeyValuePair<string, object>(kvp.Property, kvp.PropertyInfo.GetValue(entity)))
                             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-                        existingCandidates = this.ReadList<T>(assignedValues).GetAwaiter().GetResult().ToList();
+                        existingEntities = this.ReadList<T>(assignedValues).GetAwaiter().GetResult().ToList();
                     }
 
-                    // now get the last item that was added to the list in order of sequential key
-                    T lastIn = ((IQueryable<T>)existingCandidates).OrderByDescending<T>(type.SequentialKey.Property).FirstOrDefault();
-                    if (lastIn != null)
-                    {
-                        sequentialKeyValue = (int)type.SequentialKey.PropertyInfo.GetValue(lastIn);
-                    }
+                    // now get the last item that was added to the list in order of the key
+                    T lastIn = existingEntities.AsQueryable().OrderBy($"{pi.Name} DESC").FirstOrDefault();
+                    keyValue = lastIn != null ? pi.GetValue(lastIn) : keyValue;
                 }
 
-                // increment and set the sequential key value on the object
-                type.SequentialKey.PropertyInfo.SetValue(entity, sequentialKeyValue + 1);
+                // increment and set the key value on the object
+                Expression incrementExpr = Expression.Increment(Expression.Constant(keyValue));
+                pi.SetValue(entity, Expression.Lambda(incrementExpr).Compile().DynamicInvoke());
             }
             else if (type.HasIdentityKey)
             {
-                // initialise the identity key value
-                int identityKeyValue = 0;
+                // alias the property info
+                PropertyInfo pi = type.IdentityKey.PropertyInfo;
 
-                if (linqList.Count() > 0)
-                {
-                    // now get the last item that was added to the list in order of sequential key
-                    T lastIn = linqList.OrderByDescending<T>(type.IdentityKey.Property).FirstOrDefault();
-                    if (lastIn != null)
-                    {
-                        identityKeyValue = (int)type.IdentityKey.PropertyInfo.GetValue(lastIn);
-                    }
-                }
+                // initialise the key value to zero for the key type
+                dynamic keyValue = Activator.CreateInstance(pi.PropertyType);
 
-                // increment and set the sequential key value on the object
-                type.IdentityKey.PropertyInfo.SetValue(entity, identityKeyValue + 1);
+                // now get the last item that was added to the list in order of the key
+                T lastIn = linqList.OrderBy($"{pi.Name} DESC").FirstOrDefault();
+                keyValue = lastIn != null ? pi.GetValue(lastIn) : keyValue;
+
+                // increment and set the key value on the object
+                Expression incrementExpr = Expression.Increment(Expression.Constant(keyValue));
+                pi.SetValue(entity, Expression.Lambda(incrementExpr).Compile().DynamicInvoke());
             }
 
             // now set any date stamp properties
-            foreach (PropertyMap dateStampProperty in type.DateStampProperties)
+            if (type.DateStampProperties.Any())
             {
-                dateStampProperty.PropertyInfo.SetValue(entity, DateTime.Now);
+                DateTime timeStamp = DateTime.Now;
+                foreach (PropertyMap dateStampProperty in type.DateStampProperties)
+                {
+                    dateStampProperty.PropertyInfo.SetValue(entity, timeStamp);
+                }
             }
 
             // and any soft delete properties
@@ -135,7 +140,7 @@ namespace Dapper.SuaveExtensions.DataContext
         public Task DeleteList<T>(object whereConditions)
         {
             // get the existing objects
-            IEnumerable<T> objects = this.ReadList<T>(whereConditions).GetAwaiter().GetResult();
+            IEnumerable<T> objects = new List<T>(this.ReadList<T>(whereConditions).GetAwaiter().GetResult());
 
             if (objects.Count() > 0)
             {
@@ -192,27 +197,35 @@ namespace Dapper.SuaveExtensions.DataContext
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate the key
-            object id = type.ValidateKeyProperties(properties);
+            IDictionary<string, object> id = type.ValidateKeyProperties(properties);
 
             // get the existing object
-            T obj = this.Read<T>(id).GetAwaiter().GetResult();
+            T obj = this.ReadWhere<T>(id).SingleOrDefault();
 
             if (obj != null)
             {
                 // find the properties to update
-                IDictionary<string, object> allProps = (IDictionary<string, object>)properties;
-                IDictionary<string, object> idProps = type.CoalesceKeyObject(id);
-                IDictionary<string, object> updateProps = allProps.Where(kvp => !idProps.ContainsKey(kvp.Key))
+                IDictionary<string, object> allProps = type.CoalesceObject(properties);
+                IDictionary<string, object> updateProps = allProps.Where(kvp => !id.ContainsKey(kvp.Key))
                                                                   .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-                // update the properties
+                // update the properties that are not date stamps
                 foreach (string propertyName in updateProps.Keys)
                 {
                     PropertyMap propertyMap = type.UpdateableProperties.Where(x => x.Property == propertyName).SingleOrDefault();
-
                     if (propertyMap != null)
                     {
                         propertyMap.PropertyInfo.SetValue(obj, updateProps[propertyName]);
+                    }
+                }
+
+                // update the properties that are date stamps (and updateable)
+                if (type.DateStampProperties.Any(x => !x.IsReadOnly))
+                {
+                    DateTime dateStamp = DateTime.Now;
+                    foreach (PropertyMap propertyMap in type.DateStampProperties.Where(x => !x.IsReadOnly))
+                    {
+                        propertyMap.PropertyInfo.SetValue(obj, dateStamp);
                     }
                 }
             }
@@ -272,7 +285,7 @@ namespace Dapper.SuaveExtensions.DataContext
 
             var finalExpression = Expression.Lambda<Func<T, bool>>(body, parameter);
 
-            return data.Where(finalExpression).AsEnumerable();
+            return data.Where(finalExpression).AsEnumerable<T>();
         }
     }
 }
