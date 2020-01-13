@@ -46,9 +46,13 @@ namespace Dapper
             }
 
             // now set any date stamp properties
-            foreach (PropertyMap dateStampProperty in type.DateStampProperties)
+            if (type.DateStampProperties.Any())
             {
-                dateStampProperty.PropertyInfo.SetValue(entity, DateTime.Now);
+                DateTime dateStamp = DateTime.Now;
+                foreach (PropertyMap dateStampProperty in type.DateStampProperties)
+                {
+                    dateStampProperty.PropertyInfo.SetValue(entity, dateStamp);
+                }
             }
 
             // and any soft delete properties
