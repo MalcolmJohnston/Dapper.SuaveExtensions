@@ -6,23 +6,35 @@
 trigger:
 - master
 
+# use the ubuntu vm for testing
 pool:
   vmImage: 'ubuntu-latest'
 
+# use a variable to specify the release configuration
 variables:
   buildConfiguration: 'Release'
 
+# get the correct version of dot net core
 steps:
 - task: UseDotNet@2
   inputs:
     version: '3.1.x'
 
+# run dotnet build for all projects
 - task: DotNetCoreCLI@2
   inputs:
     command: build
     projects: '**/*.csproj'
     arguments:  '--configuration $(buildConfiguration)'
 
+# explicitly copy mdf/ldf files into correct location
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(Build.Repository.LocalPath)\Dapper.SuaveExtensions.Tests\'
+    Contents: '**/Data/*.*'
+    TargetFolder: '$(Build.ArtefactStagingDirectory)'
+
+# run dotnet test for all test projects
 - task: DotNetCoreCLI@2
   inputs:
     command: test
