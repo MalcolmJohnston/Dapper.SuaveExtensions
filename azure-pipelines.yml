@@ -30,7 +30,7 @@ steps:
 # explicitly copy mdf/ldf files into correct location
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(Build.Repository.LocalPath)\Dapper.SuaveExtensions.Tests\'
+    SourceFolder: '$(Build.Repository.LocalPath)/Dapper.SuaveExtensions.Tests/'
     Contents: '**/Data/*.*'
     TargetFolder: '$(Build.ArtefactStagingDirectory)'
 
