@@ -31,7 +31,7 @@ steps:
 - task: CopyFiles@2
   inputs:
     SourceFolder: '$(Build.Repository.LocalPath)/Dapper.SuaveExtensions.Tests/'
-    Contents: '**/Data/*.*'
+    Contents: '*.(mdf|ldf)'
     TargetFolder: '$(Build.ArtefactStagingDirectory)'
 
 # run dotnet test for all test projects
