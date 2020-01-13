@@ -20,17 +20,24 @@ steps:
   inputs:
     version: '3.1.x'
 
-# run dotnet build for all projects
+# run dotnet build for Dapper.SuaveExtensions
 - task: DotNetCoreCLI@2
   inputs:
     command: build
-    projects: '**/*.csproj'
+    projects: '**/Dapper.SuaveExtensions.csproj'
+    arguments:  '--configuration $(buildConfiguration)'
+
+# run dotnet build for Dapper.SuaveExtensions.Tests
+- task: DotNetCoreCLI@2
+  inputs:
+    command: build
+    projects: '**/Dapper.SuaveExtensions.Tests.csproj'
     arguments:  '--configuration $(buildConfiguration)'
 
 # explicitly copy mdf/ldf files into correct location
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(Build.Repository.LocalPath)/Dapper.SuaveExtensions.Tests/'
+    SourceFolder: ''
     Contents: '*.(mdf|ldf)'
     TargetFolder: '$(Build.ArtefactStagingDirectory)'
 
@@ -39,4 +46,4 @@ steps:
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    arguments: '--configuration $(buildConfiguration) --no-build'
