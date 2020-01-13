@@ -17,7 +17,7 @@ namespace Dapper
     /// <summary>
     /// Static class providing Suave CRUD extension methods.
     /// </summary>
-    public static class SuaveCRUD
+    public static class ExtensionMethods
     {
         private static readonly ISqlBuilder SqlBuilder = new TSqlBuilder();
 
