@@ -2,28 +2,22 @@
 // Copyright (c) InsideTravel Technology Ltd. All rights reserved.
 // </copyright>
 
+using Dapper.SuaveExtensions.DataAnnotations;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Dapper.SuaveExtensions.DataAnnotations;
-
 namespace Dapper.SuaveExtensions.Tests.Models
 {
-    [Table("ElementTable")]
-    public class Element
+    public class AssignedAndSequential
     {
         [KeyType(KeyType.Assigned)]
-        public int BookingId { get; set; }
-
-        [KeyType(KeyType.Assigned)]
-        [Column("ItinId")]
-        public int ItineraryId { get; set; }
+        public int AssignedId { get; set; }
 
         [KeyType(KeyType.Sequential)]
-        public int ElementId { get; set; }
+        public int SequentialId { get; set; }
 
         [Required]
         [Column("Title")]
-        public string ElementTitle { get; set; }
+        public string Heading { get; set; }
     }
 }

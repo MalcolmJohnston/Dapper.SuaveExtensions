@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Data.SqlClient;
+using System.Data;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
@@ -14,23 +13,20 @@ namespace Dapper.SuaveExtensions.Tests
     {
         /// <summary>
         /// Initialises routine for each Test Fixture
-        /// Use a Monitor to ensure that only one test can run at a time
         /// </summary>
         [SetUp]
         public void Setup()
         {
-            Monitor.Enter(FixtureSetup.LockObject);
+            LocalDbTestHelper.CreateTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
         /// Tear down routine for each Test Fixture
-        /// Release the Monitor so the next test can run
         /// </summary>
         [TearDown]
         public void TearDown()
         {
-            FixtureSetup.TestDataTearDown();
-            Monitor.Exit(FixtureSetup.LockObject);
+            LocalDbTestHelper.DeleteTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
@@ -39,10 +35,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Delete_Entity()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
@@ -61,10 +55,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Delete_Entity_Single_Typed_Argument()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
@@ -82,10 +74,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Delete_List_Of_Entities()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
                 await connection.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
@@ -108,10 +98,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Delete_List_No_Conditions()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
                 await connection.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
@@ -131,10 +119,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Delete_List_Non_Existing_Conditions()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
                 await connection.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });

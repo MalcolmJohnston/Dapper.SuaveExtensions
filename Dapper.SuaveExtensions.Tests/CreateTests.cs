@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Data.SqlClient;
-using System.Threading;
+using System.Data;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
@@ -13,23 +12,20 @@ namespace Dapper.SuaveExtensions.Tests
     {
         /// <summary>
         /// Initialises routine for each Test Fixture
-        /// Use a Monitor to ensure that only one test can run at a time
         /// </summary>
         [SetUp]
         public void Setup()
         {
-            Monitor.Enter(FixtureSetup.LockObject);
+            LocalDbTestHelper.CreateTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
         /// Tear down routine for each Test Fixture
-        /// Release the Monitor so the next test can run
         /// </summary>
         [TearDown]
         public void TearDown()
         {
-            FixtureSetup.TestDataTearDown();
-            Monitor.Exit(FixtureSetup.LockObject);
+            LocalDbTestHelper.DeleteTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
@@ -38,13 +34,13 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Insert_With_Identity()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
+                // Act
                 City city = await connection.Create<City>(new City() { CityCode = "BRI", CityName = "Brighton", Area = "Sussex" })
                     .ConfigureAwait(false);
 
+                // Assert
                 Assert.Greater(city.CityId, 0);
                 Assert.AreEqual("BRI", city.CityCode);
                 Assert.AreEqual("Brighton", city.CityName);
@@ -58,16 +54,16 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Insert_With_Assigned_Key()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
+                // Act
                 CityManual city = await connection.Create<CityManual>(new CityManual()
                 {
                     CityCode = "BRI",
                     CityName = "Brighton"
                 }).ConfigureAwait(false);
 
+                // Assert
                 Assert.AreEqual("BRI", city.CityCode);
                 Assert.AreEqual("Brighton", city.CityName);
             }
@@ -79,16 +75,16 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Insert_With_Sequential_Key()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
+                // Act
                 CitySequential city = await connection.Create<CitySequential>(new CitySequential()
                 {
                     CityCode = "BRI",
                     CityName = "Brighton"
                 }).ConfigureAwait(false);
 
+                // Assert
                 Assert.Greater(city.CityId, 0);
                 Assert.AreEqual("BRI", city.CityCode);
                 Assert.AreEqual("Brighton", city.CityName);
@@ -102,17 +98,15 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Insert_With_Composite_Key_One_Assigned_And_One_Sequential()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Act
-                Itinerary one = await connection.Create(new Itinerary() { BookingId = 1, ItineraryTitle = "One" });
-                Itinerary two = await connection.Create(new Itinerary() { BookingId = 1, ItineraryTitle = "Two" });
+                AssignedAndSequential one = await connection.Create(new AssignedAndSequential() { AssignedId = 1, Heading = "One" });
+                AssignedAndSequential two = await connection.Create(new AssignedAndSequential() { AssignedId = 1, Heading = "Two" });
 
                 // Assert
-                Assert.AreEqual(1, one.ItineraryId);
-                Assert.AreEqual(2, two.ItineraryId);
+                Assert.AreEqual(1, one.SequentialId);
+                Assert.AreEqual(2, two.SequentialId);
             }
         }
 
@@ -123,19 +117,17 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Insert_With_Composite_Key_Two_Assigned_And_One_Sequential()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Act
-                Element oneOneOne = await connection.Create(new Element() { BookingId = 1, ItineraryId = 1, ElementTitle = "One" });
-                Element oneOneTwo = await connection.Create(new Element() { BookingId = 1, ItineraryId = 1, ElementTitle = "Two" });
-                Element oneTwoOne = await connection.Create(new Element() { BookingId = 1, ItineraryId = 2, ElementTitle = "One" });
+                AssignedPairAndSequential oneOneOne = await connection.Create(new AssignedPairAndSequential() { FirstAssignedId = 1, SecondAssignedId = 1, Heading = "One" });
+                AssignedPairAndSequential oneOneTwo = await connection.Create(new AssignedPairAndSequential() { FirstAssignedId = 1, SecondAssignedId = 1, Heading = "Two" });
+                AssignedPairAndSequential oneTwoOne = await connection.Create(new AssignedPairAndSequential() { FirstAssignedId = 1, SecondAssignedId = 2, Heading = "One" });
 
                 // Assert
-                Assert.AreEqual(1, oneOneOne.ElementId);
-                Assert.AreEqual(2, oneOneTwo.ElementId);
-                Assert.AreEqual(1, oneTwoOne.ElementId);
+                Assert.AreEqual(1, oneOneOne.SequentialId);
+                Assert.AreEqual(2, oneOneTwo.SequentialId);
+                Assert.AreEqual(1, oneTwoOne.SequentialId);
             }
         }
 
@@ -147,10 +139,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Insert_With_Datestamp()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Act
                 DateTime now = DateTime.Now;
                 DateStamp row = await connection.Create(new DateStamp() { Name = "Key", Value = "Value" })
@@ -167,10 +157,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Insert_For_Soft_Delete()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Act
                 SoftDelete softDelete = await connection.Create<SoftDelete>(new SoftDelete()).ConfigureAwait(false);
 

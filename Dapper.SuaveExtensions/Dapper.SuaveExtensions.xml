@@ -175,7 +175,7 @@
             </summary>
             <seealso cref="T:Dapper.SuaveExtensions.DataContext.IDataContext" />
         </member>
-        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.AddOrUpdateData``1(System.Collections.Generic.IEnumerable{``0})">
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.AddOrUpdate``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             Adds test data for the specific type.
             If data already exists it will be overwritten.
@@ -362,6 +362,11 @@
             The table identifier.
             </value>
         </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.AllProperties">
+            <summary>
+            Gets all the properties belonging to this type, indexed by property name.
+            </summary>
+        </member>
         <member name="P:Dapper.SuaveExtensions.Map.TypeMap.AllKeys">
             <summary>
             Gets the key properties.
@@ -489,6 +494,18 @@
             <param name="id">The identifier.</param>
             <exception cref="T:System.ArgumentException">Thrown if a key property is not passed on the object.</exception>
             <returns>The validated key property bag.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceObject(System.Object)">
+            <summary>
+            Coalesces a dictionary from a property bag.
+            </summary>
+            <param name="propertyBag">The property bag.</param>
+            <returns>Dictionary representing the objects properties.</returns>
+            <exception cref="T:System.ArgumentException">
+            Passed property bag is null
+            or
+            Failed to find property {propertyInfo.Name}.
+            </exception>
         </member>
         <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceKeyObject(System.Object)">
             <summary>
@@ -636,12 +653,12 @@
             <returns>The WHERE clause string.</returns>
             <exception cref="T:System.ArgumentException">Argument exception throw if property in where conditions doesn't exist.</exception>
         </member>
-        <member name="T:Dapper.SuaveCRUD">
+        <member name="T:Dapper.ExtensionMethods">
             <summary>
             Static class providing Suave CRUD extension methods.
             </summary>
         </member>
-        <member name="M:Dapper.SuaveCRUD.Create``1(System.Data.IDbConnection,``0)">
+        <member name="M:Dapper.ExtensionMethods.Create``1(System.Data.IDbConnection,``0)">
             <summary>
             Inserts the specified entity.
             </summary>
@@ -650,7 +667,7 @@
             <param name="entity">The entity.</param>
             <returns>The inserted entity.</returns>
         </member>
-        <member name="M:Dapper.SuaveCRUD.Read``1(System.Data.IDbConnection,System.Object)">
+        <member name="M:Dapper.ExtensionMethods.Read``1(System.Data.IDbConnection,System.Object)">
             <summary>
             Gets the instance of T from the database which has the specified identifier.
             </summary>
@@ -659,7 +676,7 @@
             <param name="id">The identifier.</param>
             <returns>An instance of <typeparamref name="T"/> or null if no object has this id.</returns>
         </member>
-        <member name="M:Dapper.SuaveCRUD.ReadAll``1(System.Data.IDbConnection)">
+        <member name="M:Dapper.ExtensionMethods.ReadAll``1(System.Data.IDbConnection)">
             <summary>
             Gets all instances of T from the database.
             </summary>
@@ -667,7 +684,7 @@
             <param name="connection">The connection.</param>
             <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
         </member>
-        <member name="M:Dapper.SuaveCRUD.ReadList``1(System.Data.IDbConnection,System.Object)">
+        <member name="M:Dapper.ExtensionMethods.ReadList``1(System.Data.IDbConnection,System.Object)">
             <summary>
             Gets a list T from the database where T matches the properties of the whereConditions object.
             </summary>
@@ -676,7 +693,7 @@
             <param name="whereConditions">The where conditions.</param>
             <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
         </member>
-        <member name="M:Dapper.SuaveCRUD.Update``1(System.Data.IDbConnection,System.Object)">
+        <member name="M:Dapper.ExtensionMethods.Update``1(System.Data.IDbConnection,System.Object)">
             <summary>
             Updates the specified properties of an entity.
             </summary>
@@ -685,7 +702,7 @@
             <param name="properties">The properties to update (must include all key properties).</param>
             <returns>The updated entity.</returns>
         </member>
-        <member name="M:Dapper.SuaveCRUD.Delete``1(System.Data.IDbConnection,System.Object)">
+        <member name="M:Dapper.ExtensionMethods.Delete``1(System.Data.IDbConnection,System.Object)">
             <summary>
             Deletes the specified entity type by identifier.
             </summary>
@@ -694,7 +711,7 @@
             <param name="id">The identifier.</param>
             <returns><see cref="T:System.Threading.Tasks.Task"/> representing the deletion operation.</returns>
         </member>
-        <member name="M:Dapper.SuaveCRUD.DeleteList``1(System.Data.IDbConnection,System.Object)">
+        <member name="M:Dapper.ExtensionMethods.DeleteList``1(System.Data.IDbConnection,System.Object)">
             <summary>
             Deletes a list of the specified entity type by providing where conditions.
             </summary>

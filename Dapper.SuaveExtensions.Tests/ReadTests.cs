@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Dapper.SuaveExtensions;
@@ -16,23 +15,20 @@ namespace Dapper.SuaveExtensions.Tests
     {
         /// <summary>
         /// Initialises routine for each Test Fixture
-        /// Use a Monitor to ensure that only one test can run at a time
         /// </summary>
         [SetUp]
         public void Setup()
         {
-            Monitor.Enter(FixtureSetup.LockObject);
+            LocalDbTestHelper.CreateTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
         /// Tear down routine for each Test Fixture
-        /// Release the Monitor so the next test can run
         /// </summary>
         [TearDown]
         public void TearDown()
         {
-            FixtureSetup.TestDataTearDown();
-            Monitor.Exit(FixtureSetup.LockObject);
+            LocalDbTestHelper.DeleteTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
@@ -41,10 +37,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Read_All_With_Identity()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
                 await connection.Create(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
@@ -66,10 +60,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Read_All_With_Assigned()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create(new CityManual() { CityCode = "PUP", CityName = "Portsmouth" });
                 await connection.Create(new CityManual() { CityCode = "NYC", CityName = "New York City" });
@@ -83,16 +75,13 @@ namespace Dapper.SuaveExtensions.Tests
         }
 
         /// <summary>
-        /// Gets the by identifier with identity.
+        /// Test that we can get an entity with a single identity key using the property bag approach.
         /// </summary>
-        /// <returns></returns>
         [Test]
-        public async Task Read_By_Id_With_Identity()
+        public async Task Read_By_Id_With_Identity_Property_Bag()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 City pup = await connection.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
                 await connection.Create(new City() { CityCode = "NYC", CityName = "New York City", Area = "New York" });
@@ -115,10 +104,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Read_By_Id_With_Identity_Single_Typed_Argument()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 City pup = await connection.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
                 await connection.Create(new City() { CityCode = "NYC", CityName = "New York City", Area = "New York" });
@@ -140,10 +127,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Read_By_Id_With_Assigned()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create(new CityManual() { CityCode = "PUP", CityName = "Portsmouth" });
                 await connection.Create(new CityManual() { CityCode = "NYC", CityName = "New York City" });
@@ -164,10 +149,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Read_By_Id_With_Assigned_Single_Typed_Argument()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create(new CityManual() { CityCode = "PUP", CityName = "Portsmouth" });
                 await connection.Create(new CityManual() { CityCode = "NYC", CityName = "New York City" });
@@ -188,10 +171,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Read_By_Where_Condition()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 await connection.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
                 await connection.Create(new City() { CityCode = "SOU", CityName = "Southampton", Area = "Hampshire" });

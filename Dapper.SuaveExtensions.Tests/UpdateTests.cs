@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.SqlClient;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,23 +13,20 @@ namespace Dapper.SuaveExtensions.Tests
     {
         /// <summary>
         /// Initialises routine for each Test Fixture
-        /// Use a Monitor to ensure that only one test can run at a time
         /// </summary>
         [SetUp]
         public void Setup()
         {
-            Monitor.Enter(FixtureSetup.LockObject);
+            LocalDbTestHelper.CreateTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
         /// Tear down routine for each Test Fixture
-        /// Release the Monitor so the next test can run
         /// </summary>
         [TearDown]
         public void TearDown()
         {
-            FixtureSetup.TestDataTearDown();
-            Monitor.Exit(FixtureSetup.LockObject);
+            LocalDbTestHelper.DeleteTestDatabase(TestContext.CurrentContext.Test.FullName);
         }
 
         /// <summary>
@@ -38,10 +35,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Update_Editable_Property()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
@@ -61,10 +56,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Update_Editable_Properties()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 City city = await connection.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
@@ -92,13 +85,9 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Update_With_Datestamp()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
-
-                // insert row
                 DateStamp row = await connection.Create(new DateStamp() { Name = "Key", Value = "Value" })
                     .ConfigureAwait(false);
 
@@ -126,10 +115,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Update_Soft_Delete_Column()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 SoftDelete softDelete = await connection.Create<SoftDelete>(new SoftDelete()).ConfigureAwait(false);
 
@@ -148,10 +135,8 @@ namespace Dapper.SuaveExtensions.Tests
         [Test]
         public async Task Update_Read_Only_Column()
         {
-            using (SqlConnection connection = new SqlConnection(FixtureSetup.LocalDbConnectionString))
+            using (IDbConnection connection = LocalDbTestHelper.OpenTestConnection(TestContext.CurrentContext.Test.FullName))
             {
-                connection.Open();
-
                 // Arrange
                 ReadOnly readOnly = await connection.Create<ReadOnly>(new ReadOnly()
                 {

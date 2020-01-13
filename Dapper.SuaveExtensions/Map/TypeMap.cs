@@ -17,8 +17,6 @@ namespace Dapper.SuaveExtensions.Map
     {
         private static ConcurrentDictionary<string, TypeMap> typeMapCache = new ConcurrentDictionary<string, TypeMap>();
 
-        private IEnumerable<PropertyMap> allPropertyMaps;
-
         /// <summary>
         /// Gets or sets the mapped type.
         /// </summary>
@@ -58,6 +56,11 @@ namespace Dapper.SuaveExtensions.Map
                 return !string.IsNullOrWhiteSpace(this.Schema) ? $"[{this.Schema}].[{this.TableName}]" : $"[{this.TableName}]";
             }
         }
+
+        /// <summary>
+        /// Gets all the properties belonging to this type, indexed by property name.
+        /// </summary>
+        public IDictionary<string, PropertyMap> AllProperties { get; private set; }
 
         /// <summary>
         /// Gets the key properties.
@@ -212,7 +215,7 @@ namespace Dapper.SuaveExtensions.Map
         /// <param name="id">The identifier.</param>
         /// <exception cref="ArgumentException">Thrown if a key property is not passed on the object.</exception>
         /// <returns>The validated key property bag.</returns>
-        public object ValidateKeyProperties(object id)
+        public IDictionary<string, object> ValidateKeyProperties(object id)
         {
             if (id == null)
             {
@@ -247,6 +250,44 @@ namespace Dapper.SuaveExtensions.Map
             }
 
             return eo;
+        }
+
+        /// <summary>
+        /// Coalesces a dictionary from a property bag.
+        /// </summary>
+        /// <param name="propertyBag">The property bag.</param>
+        /// <returns>Dictionary representing the objects properties.</returns>
+        /// <exception cref="ArgumentException">
+        /// Passed property bag is null
+        /// or
+        /// Failed to find property {propertyInfo.Name}.
+        /// </exception>
+        public IDictionary<string, object> CoalesceObject(object propertyBag)
+        {
+            if (propertyBag == null)
+            {
+                throw new ArgumentException("Passed property bag is null.");
+            }
+
+            // if we have an expando object or dictionary already then return it
+            if (propertyBag is IDictionary<string, object>)
+            {
+                return propertyBag as IDictionary<string, object>;
+            }
+
+            IDictionary<string, object> obj = new Dictionary<string, object>();
+            PropertyInfo[] propertyInfos = propertyBag.GetType().GetProperties();
+            foreach (PropertyInfo propertyInfo in propertyInfos)
+            {
+                if (!this.AllProperties.TryGetValue(propertyInfo.Name, out PropertyMap pm))
+                {
+                    throw new ArgumentException($"Failed to find property {propertyInfo.Name}.");
+                }
+
+                obj.Add(propertyInfo.Name, propertyInfo.GetValue(propertyBag));
+            }
+
+            return obj;
         }
 
         /// <summary>
@@ -297,31 +338,26 @@ namespace Dapper.SuaveExtensions.Map
         /// </exception>
         public IList<PropertyMap> ValidateWhereProperties(object whereConditions)
         {
-            if (whereConditions == null)
+            // coalesce the object to a dictionary
+            IDictionary<string, object> whereDict = this.CoalesceObject(whereConditions);
+
+            // check we have some conditions to create
+            if (whereDict.Count == 0)
             {
                 throw new ArgumentException("Please pass where conditions.");
-            }
-
-            // get the passed properties
-            PropertyInfo[] propertyInfos = whereConditions.GetType().GetProperties();
-
-            // check that we have at least one property/condition
-            if (propertyInfos == null || propertyInfos.Length == 0)
-            {
-                throw new ArgumentException("Please specify at least one property for a WHERE condition.");
             }
 
             // setup our list of property mappings that we will create the where clause from
             List<PropertyMap> propertyMappings = new List<PropertyMap>();
 
-            foreach (PropertyInfo property in propertyInfos)
+            foreach (string propertyName in whereDict.Keys)
             {
                 PropertyMap propertyMap = this.SelectProperties
-                                              .SingleOrDefault(x => x.Property == property.Name);
+                                              .SingleOrDefault(x => x.Property == propertyName);
 
                 if (propertyMap == null)
                 {
-                    throw new ArgumentException($"Failed to find property {property.Name}.");
+                    throw new ArgumentException($"Failed to find property {propertyName}.");
                 }
 
                 propertyMappings.Add(propertyMap);
@@ -349,8 +385,7 @@ namespace Dapper.SuaveExtensions.Map
             };
 
             // override schema and table name if table attribute present
-            TableAttribute tableAttribute = objectType.GetCustomAttribute(typeof(TableAttribute)) as TableAttribute;
-            if (tableAttribute != null)
+            if (objectType.GetCustomAttribute(typeof(TableAttribute)) is TableAttribute tableAttribute)
             {
                 typeMap.Schema = tableAttribute.Schema;
                 typeMap.TableName = tableAttribute.Name;
@@ -358,15 +393,16 @@ namespace Dapper.SuaveExtensions.Map
 
             // load the property mappings
             // null property mappings have the NotMapped attribute and so should just be ignored
-            typeMap.allPropertyMaps = objectType.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                                                     .Select(pi => PropertyMap.LoadPropertyMap(pi))
-                                                     .Where(x => x != null);
+            typeMap.AllProperties = objectType.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                                              .Select(pi => PropertyMap.LoadPropertyMap(pi))
+                                              .Where(x => x != null)
+                                              .ToDictionary(kvp => kvp.Property, kvp => kvp);
 
             // setup our helper collections of property maps
-            typeMap.SelectProperties = typeMap.allPropertyMaps.ToList();
+            typeMap.SelectProperties = typeMap.AllProperties.Values.ToList();
 
             // all key properties
-            typeMap.AllKeys = typeMap.allPropertyMaps.Where(x => x.IsKey).ToList();
+            typeMap.AllKeys = typeMap.AllProperties.Values.Where(x => x.IsKey).ToList();
 
             // check whether we have more than one identity key
             if (typeMap.AllKeys.Count(x => x.KeyType == KeyType.Identity) > 1)
@@ -389,30 +425,30 @@ namespace Dapper.SuaveExtensions.Map
             typeMap.SequentialKey = typeMap.AllKeys.SingleOrDefault(x => x.KeyType == KeyType.Sequential);
 
             // check whether we have a soft delete column
-            if (typeMap.allPropertyMaps.Where(x => x.IsSoftDelete).Count() > 1)
+            if (typeMap.AllProperties.Values.Where(x => x.IsSoftDelete).Count() > 1)
             {
                 throw new ArgumentException("Type can only define a single soft delete column.");
             }
 
             // set the soft delete property
-            typeMap.SoftDeleteProperty = typeMap.allPropertyMaps.SingleOrDefault(x => x.IsSoftDelete);
+            typeMap.SoftDeleteProperty = typeMap.AllProperties.Values.SingleOrDefault(x => x.IsSoftDelete);
 
             // set the required properties
-            typeMap.RequiredProperties = typeMap.allPropertyMaps.Where(x => x.IsRequired).ToList();
+            typeMap.RequiredProperties = typeMap.AllProperties.Values.Where(x => x.IsRequired).ToList();
 
             // set the insertable properties
-            typeMap.InsertableProperties = typeMap.allPropertyMaps.Where(x => x.KeyType != KeyType.Identity)
-                                                                  .ToList();
+            typeMap.InsertableProperties = typeMap.AllProperties.Values.Where(x => x.KeyType != KeyType.Identity)
+                                                                       .ToList();
 
             // set the updateable properties
-            typeMap.UpdateableProperties = typeMap.allPropertyMaps.Where(x => x.KeyType == KeyType.NotAKey &&
-                                                                              x.IsEditable &&
-                                                                              !x.IsSoftDelete &&
-                                                                              !x.IsDateStamp)
-                                                                  .ToList();
+            typeMap.UpdateableProperties = typeMap.AllProperties.Values.Where(x => x.KeyType == KeyType.NotAKey &&
+                                                                                   x.IsEditable &&
+                                                                                   !x.IsSoftDelete &&
+                                                                                   !x.IsDateStamp)
+                                                                       .ToList();
 
             // set the date stamp properties
-            typeMap.DateStampProperties = typeMap.allPropertyMaps.Where(x => x.IsDateStamp).ToList();
+            typeMap.DateStampProperties = typeMap.AllProperties.Values.Where(x => x.IsDateStamp).ToList();
 
             return typeMap;
         }
