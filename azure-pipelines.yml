@@ -34,16 +34,24 @@ steps:
     projects: '**/Dapper.SuaveExtensions.Tests.csproj'
     arguments:  '--configuration $(buildConfiguration)'
 
-# explicitly copy mdf/ldf files into correct location
-- task: CopyFiles@2
+- task: PowerShell@2
   inputs:
-    SourceFolder: ''
-    Contents: '*.(mdf|ldf)'
-    TargetFolder: '$(Build.ArtefactStagingDirectory)'
+    targetType: 'inline'
+    script: |
+      # Write your PowerShell commands here.
+      
+      Get-ChildItem -Path $(Build.Repository.LocalPath) –Recurse
+
+# explicitly copy mdf/ldf files into correct location
+#- task: CopyFiles@2
+#  inputs:
+#    SourceFolder: ''
+#    Contents: '*.(mdf|ldf)'
+#    TargetFolder: '$(Build.ArtefactStagingDirectory)'
 
 # run dotnet test for all test projects
-- task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --no-build'
+#- task: DotNetCoreCLI@2
+#  inputs:
+#    command: test
+#    projects: '**/*Tests/*.csproj'
+#    arguments: '--configuration $(buildConfiguration) --no-build'
