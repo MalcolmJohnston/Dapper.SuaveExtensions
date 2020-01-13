@@ -15,7 +15,7 @@ namespace Dapper.SuaveExtensions.SqlBuilder
     /// </summary>
     public class TSqlBuilder : ISqlBuilder
     {
-        private ConcurrentDictionary<string, string> staticSqlStatementCache = new ConcurrentDictionary<string, string>();
+        private readonly ConcurrentDictionary<string, string> staticSqlStatementCache = new ConcurrentDictionary<string, string>();
 
         /// <inheritdoc />
         public string EncapsulationFormat

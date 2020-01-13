@@ -385,8 +385,7 @@ namespace Dapper.SuaveExtensions.Map
             };
 
             // override schema and table name if table attribute present
-            TableAttribute tableAttribute = objectType.GetCustomAttribute(typeof(TableAttribute)) as TableAttribute;
-            if (tableAttribute != null)
+            if (objectType.GetCustomAttribute(typeof(TableAttribute)) is TableAttribute tableAttribute)
             {
                 typeMap.Schema = tableAttribute.Schema;
                 typeMap.TableName = tableAttribute.Name;

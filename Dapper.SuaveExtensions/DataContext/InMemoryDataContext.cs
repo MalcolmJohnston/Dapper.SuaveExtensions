@@ -22,7 +22,7 @@ namespace Dapper.SuaveExtensions.DataContext
     /// <seealso cref="Dapper.SuaveExtensions.DataContext.IDataContext" />
     public class InMemoryDataContext : IDataContext
     {
-        private ConcurrentDictionary<string, IList> dataStore = new ConcurrentDictionary<string, IList>();
+        private readonly ConcurrentDictionary<string, IList> dataStore = new ConcurrentDictionary<string, IList>();
 
         /// <summary>
         /// Adds test data for the specific type.
@@ -251,7 +251,6 @@ namespace Dapper.SuaveExtensions.DataContext
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // get the data to query
-            IList<T> list = this.GetData<T>();
             IQueryable<T> data = this.GetData<T>().AsQueryable<T>();
 
             // return an empty enumerable if no objects in collection

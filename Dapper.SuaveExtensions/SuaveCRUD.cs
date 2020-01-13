@@ -19,7 +19,7 @@ namespace Dapper
     /// </summary>
     public static class SuaveCRUD
     {
-        private static ISqlBuilder sqlBuilder = new TSqlBuilder();
+        private static readonly ISqlBuilder SqlBuilder = new TSqlBuilder();
 
         /// <summary>
         /// Inserts the specified entity.
@@ -36,7 +36,7 @@ namespace Dapper
             if (type.HasSequentialKey)
             {
                 // read the next id from the database
-                object id = await conn.ExecuteScalarAsync(sqlBuilder.BuildGetNextId(type), entity)
+                object id = await conn.ExecuteScalarAsync(SqlBuilder.BuildGetNextId(type), entity)
                     .ConfigureAwait(false);
 
                 // set the sequential key on our entity
@@ -62,7 +62,7 @@ namespace Dapper
             // TODO: validate
 
             // execute the insert
-            var row = (await conn.QueryAsync(sqlBuilder.BuildInsert(type), entity)
+            var row = (await conn.QueryAsync(SqlBuilder.BuildInsert(type), entity)
                 .ConfigureAwait(false))
                 .SingleOrDefault();
 
@@ -98,7 +98,7 @@ namespace Dapper
             // validate that all key properties are passed
             id = type.ValidateKeyProperties(id);
 
-            return (await connection.QueryAsync<T>(sqlBuilder.BuildSelectById(type, id), id)
+            return (await connection.QueryAsync<T>(SqlBuilder.BuildSelectById(type, id), id)
                 .ConfigureAwait(false))
                 .SingleOrDefault();
         }
@@ -113,7 +113,7 @@ namespace Dapper
         {
             TypeMap type = TypeMap.GetTypeMap<T>();
 
-            return await connection.QueryAsync<T>(sqlBuilder.BuildSelectAll(type))
+            return await connection.QueryAsync<T>(SqlBuilder.BuildSelectAll(type))
                 .ConfigureAwait(false);
         }
 
@@ -132,7 +132,7 @@ namespace Dapper
             type.ValidateWhereProperties(type.CoalesceObject(whereConditions));
 
             return await connection.QueryAsync<T>(
-                sqlBuilder.BuildSelectWhere(type, whereConditions),
+                SqlBuilder.BuildSelectWhere(type, whereConditions),
                 whereConditions).ConfigureAwait(false);
         }
 
@@ -151,11 +151,11 @@ namespace Dapper
             IDictionary<string, object> id = type.CoalesceKeyObject(properties);
 
             // execute the insert
-            await conn.ExecuteAsync(sqlBuilder.BuildUpdate(type, properties), properties)
+            await conn.ExecuteAsync(SqlBuilder.BuildUpdate(type, properties), properties)
                 .ConfigureAwait(false);
 
             // return
-            return (await conn.QueryAsync<T>(sqlBuilder.BuildSelectById(type, id), id)
+            return (await conn.QueryAsync<T>(SqlBuilder.BuildSelectById(type, id), id)
                 .ConfigureAwait(false))
                 .SingleOrDefault();
         }
@@ -175,7 +175,7 @@ namespace Dapper
             id = type.ValidateKeyProperties(id);
 
             // delete
-            await connection.QueryAsync<T>(sqlBuilder.BuildDeleteById(type), id)
+            await connection.QueryAsync<T>(SqlBuilder.BuildDeleteById(type), id)
                 .ConfigureAwait(false);
         }
 
@@ -195,7 +195,7 @@ namespace Dapper
 
             // delete
             await connection.QueryAsync<T>(
-                sqlBuilder.BuildDeleteWhere(type, whereConditions),
+                SqlBuilder.BuildDeleteWhere(type, whereConditions),
                 whereConditions).ConfigureAwait(false);
         }
     }

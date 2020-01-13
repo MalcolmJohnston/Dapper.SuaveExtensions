@@ -175,7 +175,7 @@
             </summary>
             <seealso cref="T:Dapper.SuaveExtensions.DataContext.IDataContext" />
         </member>
-        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.AddOrUpdateData``1(System.Collections.Generic.IEnumerable{``0})">
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.AddOrUpdate``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             Adds test data for the specific type.
             If data already exists it will be overwritten.
@@ -362,6 +362,11 @@
             The table identifier.
             </value>
         </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.AllProperties">
+            <summary>
+            Gets all the properties belonging to this type, indexed by property name.
+            </summary>
+        </member>
         <member name="P:Dapper.SuaveExtensions.Map.TypeMap.AllKeys">
             <summary>
             Gets the key properties.
@@ -489,6 +494,18 @@
             <param name="id">The identifier.</param>
             <exception cref="T:System.ArgumentException">Thrown if a key property is not passed on the object.</exception>
             <returns>The validated key property bag.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceObject(System.Object)">
+            <summary>
+            Coalesces a dictionary from a property bag.
+            </summary>
+            <param name="propertyBag">The property bag.</param>
+            <returns>Dictionary representing the objects properties.</returns>
+            <exception cref="T:System.ArgumentException">
+            Passed property bag is null
+            or
+            Failed to find property {propertyInfo.Name}.
+            </exception>
         </member>
         <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceKeyObject(System.Object)">
             <summary>

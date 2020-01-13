@@ -76,12 +76,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
             InMemoryDataContext dataContext = new InMemoryDataContext();
 
             // Act
-            Itinerary one = await dataContext.Create(new Itinerary() { BookingId = 1, ItineraryTitle = "One" });
-            Itinerary two = await dataContext.Create(new Itinerary() { BookingId = 1, ItineraryTitle = "Two" });
+            AssignedAndSequential one = await dataContext.Create(new AssignedAndSequential() { AssignedId = 1, Heading = "One" });
+            AssignedAndSequential two = await dataContext.Create(new AssignedAndSequential() { AssignedId = 1, Heading = "Two" });
 
             // Assert
-            Assert.AreEqual(1, one.ItineraryId);
-            Assert.AreEqual(2, two.ItineraryId);
+            Assert.AreEqual(1, one.SequentialId);
+            Assert.AreEqual(2, two.SequentialId);
         }
 
         /// <summary>
@@ -95,14 +95,14 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
             InMemoryDataContext dataContext = new InMemoryDataContext();
 
             // Act
-            Element oneOneOne = await dataContext.Create(new Element() { BookingId = 1, ItineraryId = 1, ElementTitle = "One" });
-            Element oneOneTwo = await dataContext.Create(new Element() { BookingId = 1, ItineraryId = 1, ElementTitle = "Two" });
-            Element oneTwoOne = await dataContext.Create(new Element() { BookingId = 1, ItineraryId = 2, ElementTitle = "One" });
+            AssignedPairAndSequential oneOneOne = await dataContext.Create(new AssignedPairAndSequential() { FirstAssignedId = 1, SecondAssignedId = 1, Heading = "One" });
+            AssignedPairAndSequential oneOneTwo = await dataContext.Create(new AssignedPairAndSequential() { FirstAssignedId = 1, SecondAssignedId = 1, Heading = "Two" });
+            AssignedPairAndSequential oneTwoOne = await dataContext.Create(new AssignedPairAndSequential() { FirstAssignedId = 1, SecondAssignedId = 2, Heading = "One" });
 
             // Assert
-            Assert.AreEqual(1, oneOneOne.ElementId);
-            Assert.AreEqual(2, oneOneTwo.ElementId);
-            Assert.AreEqual(1, oneTwoOne.ElementId);
+            Assert.AreEqual(1, oneOneOne.SequentialId);
+            Assert.AreEqual(2, oneOneTwo.SequentialId);
+            Assert.AreEqual(1, oneTwoOne.SequentialId);
         }
 
         /// <summary>
