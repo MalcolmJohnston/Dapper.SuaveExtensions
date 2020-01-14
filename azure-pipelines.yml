@@ -34,3 +34,9 @@ steps:
     command: test
     projects: '**/*Tests/*.csproj'
     arguments: '--configuration $(buildConfiguration) --no-build'
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/Dapper.SuaveExtensions.csproj'
+    versioningScheme: 'off'
