@@ -34,10 +34,3 @@ steps:
     command: test
     projects: '**/*Tests/*.csproj'
     arguments: '--configuration $(buildConfiguration) --no-build'
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: '**/Dapper.SuaveExtensions.csproj'
-    nobuild: true
-    versioningScheme: 'off'
