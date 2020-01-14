@@ -1,0 +1,37 @@
+# Package and Deploy Pipeline
+
+trigger:
+- none
+
+# use the Ubuntu vm for build / package / deploy
+pool:
+  vmImage: 'ubuntu-latest'
+
+# use a variable to specify the release configuration
+variables:
+  buildConfiguration: 'Release'
+
+# get the correct version of dot net core
+steps:
+- task: UseDotNet@2
+  inputs:
+    version: '3.1.x'
+
+# run dotnet build for the Dapper.SuaveExtensions project
+- task: DotNetCoreCLI@2
+  inputs:
+    command: build
+    projects: '**/Dapper.SuaveExtensions.csproj'
+    arguments:  '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/Dapper.SuaveExtensions.csproj'
+    nobuild: true
+    versioningScheme: 'off'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: nuget
