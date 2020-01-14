@@ -20,13 +20,23 @@ namespace Dapper.SuaveExtensions.Tests
         private static readonly Dictionary<string, string> testName2DbName = new Dictionary<string, string>();
 
         private static readonly string dataFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Data");
-        private static readonly string tempFolder = Path.GetTempPath();
+        private static readonly string tempFolder = Path.Combine(Path.GetTempPath(), Assembly.GetExecutingAssembly().GetName().Name);
 
         public static void CreateTestDatabase(string testName)
         {
+            // get the temporary file name and delete the temporary file
+            string tempFile = Path.GetTempFileName();
+            File.Delete(tempFile);
+
             // get the database name and add to cache
-            string dbName = Path.GetFileNameWithoutExtension(Path.GetTempFileName());
+            string dbName = Path.GetFileNameWithoutExtension(tempFile);
             testName2DbName[testName] = dbName;
+
+            // check whether our temp folder exists
+            if (!Directory.Exists(tempFolder))
+            {
+                Directory.CreateDirectory(tempFolder);
+            }
 
             // create the database by copying TestSchema files to the temp folder
             // using temp folder rather than build folder due to permissions on Azure DevOps
