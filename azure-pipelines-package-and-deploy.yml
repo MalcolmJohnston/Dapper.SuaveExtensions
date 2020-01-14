@@ -14,4 +14,3 @@ steps:
   inputs:
     command: 'pack'
     packagesToPack: '**/Dapper.SuaveExtensions.csproj'
-    versioningScheme: 'byBuildNumber'
