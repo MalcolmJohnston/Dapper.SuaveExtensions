@@ -6,9 +6,10 @@
 trigger:
 - master
 
-# use the ubuntu vm for testing
+# use the Windows vm for build/test
+# have to use Windows as LocalDb not supported on Linux
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 # use a variable to specify the release configuration
 variables:
