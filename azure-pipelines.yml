@@ -34,3 +34,17 @@ steps:
     command: test
     projects: '**/*Tests/*.csproj'
     arguments: '--configuration $(buildConfiguration) --no-build'
+
+# run dotnet pack to build .nupkg
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/Dapper.SuaveExtensions.csproj'
+    nobuild: true
+    versioningScheme: 'off'
+
+# publish the .nupkg as a build artifact
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: nuget
