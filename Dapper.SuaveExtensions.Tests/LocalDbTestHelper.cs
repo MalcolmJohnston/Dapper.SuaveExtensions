@@ -20,6 +20,7 @@ namespace Dapper.SuaveExtensions.Tests
         private static readonly Dictionary<string, string> testName2DbName = new Dictionary<string, string>();
 
         private static readonly string dataFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Data");
+        private static readonly string tempFolder = Path.GetTempPath();
 
         public static void CreateTestDatabase(string testName)
         {
@@ -27,9 +28,10 @@ namespace Dapper.SuaveExtensions.Tests
             string dbName = Path.GetFileNameWithoutExtension(Path.GetTempFileName());
             testName2DbName[testName] = dbName;
 
-            // create the database by copying TestSchema files
-            File.Copy(GetMdfPath("TestSchema"), GetMdfPath(dbName), true);
-            File.Copy(GetLogPath("TestSchema"), GetLogPath(dbName), true);
+            // create the database by copying TestSchema files to the temp folder
+            // using temp folder rather than build folder due to permissions on Azure DevOps
+            File.Copy(GetMdfPath(dataFolder, "TestSchema"), GetMdfPath(tempFolder, dbName), true);
+            File.Copy(GetLogPath(dataFolder, "TestSchema"), GetLogPath(tempFolder, dbName), true);
         }
 
         public static IDbConnection OpenTestConnection(string testName)
@@ -40,7 +42,7 @@ namespace Dapper.SuaveExtensions.Tests
             }
 
             string dbName = testName2DbName[testName];
-            return OpenConnection(dbName, GetMdfPath(dbName));
+            return OpenConnection(dbName, GetMdfPath(tempFolder, dbName));
         }
 
         public static void DeleteTestDatabase(string testName)
@@ -67,14 +69,14 @@ namespace Dapper.SuaveExtensions.Tests
             return $"Data Source={localDbDataSource};Initial Catalog={dbName};Integrated Security=True;";
         }
 
-        private static string GetMdfPath(string dbName)
+        private static string GetMdfPath(string folder, string dbName)
         {
-            return Path.Combine(dataFolder, $"{dbName}.mdf");
+            return Path.Combine(folder, $"{dbName}.mdf");
         }
 
-        private static string GetLogPath(string dbName)
+        private static string GetLogPath(string folder, string dbName)
         {
-            return Path.Combine(dataFolder, $"{dbName}_log.ldf");
+            return Path.Combine(folder, $"{dbName}_log.ldf");
         }
 
         private static IDbConnection OpenConnection(string dbName, string dbFileName)
