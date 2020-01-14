@@ -30,8 +30,14 @@ namespace Dapper.SuaveExtensions.Tests
 
             // create the database by copying TestSchema files to the temp folder
             // using temp folder rather than build folder due to permissions on Azure DevOps
-            File.Copy(GetMdfPath(dataFolder, "TestSchema"), GetMdfPath(tempFolder, dbName), true);
-            File.Copy(GetLogPath(dataFolder, "TestSchema"), GetLogPath(tempFolder, dbName), true);
+            string targetMdfPath = GetMdfPath(tempFolder, dbName);
+            string targetLdfPath = GetLogPath(tempFolder, dbName);
+            File.Copy(GetMdfPath(dataFolder, "TestSchema"), targetMdfPath, true);
+            File.Copy(GetLogPath(dataFolder, "TestSchema"), targetLdfPath, true);
+
+            // ensure target files are not read-only
+            File.SetAttributes(targetMdfPath, File.GetAttributes(targetMdfPath) & ~FileAttributes.ReadOnly);
+            File.SetAttributes(targetLdfPath, File.GetAttributes(targetLdfPath) & ~FileAttributes.ReadOnly);
         }
 
         public static IDbConnection OpenTestConnection(string testName)
