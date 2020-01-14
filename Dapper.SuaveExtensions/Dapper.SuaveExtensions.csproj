@@ -14,6 +14,14 @@
 
   <PropertyGroup>
     <CodeAnalysisRuleSet>.\Analyzers.ruleset</CodeAnalysisRuleSet>
+    <Version>1.0.0-alpha</Version>
+    <Authors>Malcolm Johnston</Authors>
+    <Company>N/A</Company>
+    <Product>Suave Extensions for Dapper</Product>
+    <Description>CRUD Extension Methods for Dapper.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/MalcolmJohnston/Dapper.SuaveExtensions</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MalcolmJohnston/Dapper.SuaveExtensions</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
