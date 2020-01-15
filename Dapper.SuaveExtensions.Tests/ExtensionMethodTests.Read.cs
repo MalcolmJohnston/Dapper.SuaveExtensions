@@ -11,26 +11,8 @@ using NUnit.Framework;
 namespace Dapper.SuaveExtensions.Tests
 {
     [TestFixture]
-    public class ReadTests
+    public partial class ExtensionMethodTests
     {
-        /// <summary>
-        /// Initialises routine for each Test Fixture
-        /// </summary>
-        [SetUp]
-        public void Setup()
-        {
-            LocalDbTestHelper.CreateTestDatabase(TestContext.CurrentContext.Test.FullName);
-        }
-
-        /// <summary>
-        /// Tear down routine for each Test Fixture
-        /// </summary>
-        [TearDown]
-        public void TearDown()
-        {
-            LocalDbTestHelper.DeleteTestDatabase(TestContext.CurrentContext.Test.FullName);
-        }
-
         /// <summary>
         /// Test that we can execute Get All when the Model is mapped with an Identity column.
         /// </summary>

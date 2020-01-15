@@ -7,18 +7,19 @@ using Dapper.SuaveExtensions.Tests.Models;
 
 using NUnit.Framework;
 
-namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
+namespace Dapper.SuaveExtensions.Tests
 {
-    public class UpdateTests
+    public partial class DataContextTests
     {
         /// <summary>
         /// Test that we can update a single editable property
         /// </summary>
-        [Test]
-        public async Task Update_Editable_Property()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Update_Editable_Property(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             City city = await dataContext.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
             // Act
@@ -34,11 +35,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// <summary>
         /// Test that we can update multiple editable properties.
         /// </summary>
-        [Test]
-        public async Task Update_Editable_Properties()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Update_Editable_Properties(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             City city = await dataContext.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
             // Act
@@ -62,11 +64,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// to the time now on insert.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Update_With_Datestamp()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Update_With_Datestamp(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // insert row
             DateStamp row = await dataContext.Create(new DateStamp() { Name = "Key", Value = "Value" });
@@ -90,29 +93,31 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that when we try to update a soft delete column that the value is ignored.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Update_Soft_Delete_Column()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Update_Soft_Delete_Column(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             SoftDelete softDelete = await dataContext.Create<SoftDelete>(new SoftDelete());
 
-            // Act
-            SoftDelete updated = await dataContext.Update<SoftDelete>(new { softDelete.SoftDeleteId, RecordStatus = 999 });
-
-            // Assert - update to soft delete columns should be ignored
-            Assert.AreEqual(softDelete.RecordStatus, updated.RecordStatus);
+            // Act / Assert
+            Assert.ThrowsAsync<ArgumentException>(async () =>
+            {
+                await dataContext.Update<SoftDelete>(new { softDelete.SoftDeleteId, RecordStatus = 999 });
+            });
         }
 
         /// <summary>
         /// Test that when we try to update a read only column that our update is not persisted.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Update_Read_Only_Column()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Update_Read_Only_Column(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             ReadOnly readOnly = await dataContext.Create<ReadOnly>(new ReadOnly()
             {
                 Editable = "Hello",

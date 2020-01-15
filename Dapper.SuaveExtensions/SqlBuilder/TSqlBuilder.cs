@@ -11,7 +11,7 @@ using Dapper.SuaveExtensions.Map;
 namespace Dapper.SuaveExtensions.SqlBuilder
 {
     /// <summary>
-    /// ISqlDialect implementation for SQL Server.
+    /// TSqlDialect implementation for SQL Server.
     /// </summary>
     public class TSqlBuilder : ISqlBuilder
     {

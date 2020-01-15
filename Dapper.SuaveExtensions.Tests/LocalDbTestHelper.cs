@@ -57,8 +57,7 @@ namespace Dapper.SuaveExtensions.Tests
                 CreateTestDatabase(testName);
             }
 
-            string dbName = testName2DbName[testName];
-            return OpenConnection(dbName, GetMdfPath(tempFolder, dbName));
+            return OpenConnection(GetTestConnectionString(testName));
         }
 
         public static void DeleteTestDatabase(string testName)
@@ -73,6 +72,12 @@ namespace Dapper.SuaveExtensions.Tests
 
                 testName2DbName.Remove(testName);
             }
+        }
+
+        public static string GetTestConnectionString(string testName)
+        {
+            string dbName = testName2DbName[testName];
+            return GetLocalDbConnectionString(dbName, GetMdfPath(tempFolder, dbName));
         }
 
         private static string GetLocalDbConnectionString(string dbName, string dbFileName)
@@ -95,19 +100,10 @@ namespace Dapper.SuaveExtensions.Tests
             return Path.Combine(folder, $"{dbName}_log.ldf");
         }
 
-        private static IDbConnection OpenConnection(string dbName, string dbFileName)
+        private static IDbConnection OpenConnection(string connectionString)
         {
             // open the connection
-            IDbConnection conn = new SqlConnection(GetLocalDbConnectionString(dbName, dbFileName));
-            conn.Open();
-
-            return conn;
-        }
-
-        private static IDbConnection OpenConnection(string dbName)
-        {
-            // open the connection
-            IDbConnection conn = new SqlConnection(GetLocalDbConnectionString(dbName));
+            IDbConnection conn = new SqlConnection(connectionString);
             conn.Open();
 
             return conn;

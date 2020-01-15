@@ -204,6 +204,40 @@
         <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.Update``1(System.Object)">
             <inheritdoc />
         </member>
+        <member name="T:Dapper.SuaveExtensions.DataContext.SqlServerDataContext">
+            <summary>
+            Sql Server data context implementation.  Intended to be used with dependency injection and is preferred to using the
+            extension methods directly.
+            </summary>
+            <seealso cref="T:Dapper.SuaveExtensions.DataContext.IDataContext" />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Dapper.SuaveExtensions.DataContext.SqlServerDataContext"/> class.
+            </summary>
+            <param name="connectionString">The connection string.</param>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.Create``1(``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.Read``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.ReadAll``1">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.ReadList``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.Update``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.Delete``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.DeleteList``1(System.Object)">
+            <inheritdoc />
+        </member>
         <member name="T:Dapper.SuaveExtensions.Map.PropertyMap">
             <summary>
             Class the defines a property mapping.
@@ -614,7 +648,7 @@
         </member>
         <member name="T:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder">
             <summary>
-            ISqlDialect implementation for SQL Server.
+            TSqlDialect implementation for SQL Server.
             </summary>
         </member>
         <member name="P:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.EncapsulationFormat">

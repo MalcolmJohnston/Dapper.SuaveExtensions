@@ -7,18 +7,19 @@ using Dapper.SuaveExtensions.Tests.Models;
 
 using NUnit.Framework;
 
-namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
+namespace Dapper.SuaveExtensions.Tests
 {
-    public class DeleteTests
+    public partial class DataContextTests
     {
         /// <summary>
         /// Test that we can delete a single entity.
         /// </summary>
-        [Test]
-        public async Task Delete_Entity()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Delete_Entity(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             City city = await dataContext.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
             // Act
@@ -32,11 +33,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that we can delete a single entity with an identity column by passing a single
         /// typed argument rather than a property bag.
         /// </summary>
-        [Test]
-        public async Task Delete_Entity_Single_Typed_Argument()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Delete_Entity_Single_Typed_Argument(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             City city = await dataContext.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
 
             // Act
@@ -49,11 +51,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// <summary>
         /// Test that we can delete a multiple entities using a where condition.
         /// </summary>
-        [Test]
-        public async Task Delete_List_Of_Entities()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Delete_List_Of_Entities(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
             await dataContext.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
             await dataContext.Create<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
@@ -71,11 +74,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that if we try to delete a list of entities without specifying a condition that and exception is thrown.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Delete_List_No_Conditions()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Delete_List_No_Conditions(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
             await dataContext.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
             await dataContext.Create<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
@@ -90,11 +94,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that if we try to delete a list of entities without specifying a condition that and exception is thrown.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Delete_List_Non_Existing_Conditions()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Delete_List_Non_Existing_Conditions(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create<City>(new City() { CityCode = "BAS", CityName = "Basingstoke", Area = "Hampshire" });
             await dataContext.Create<City>(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
             await dataContext.Create<City>(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
