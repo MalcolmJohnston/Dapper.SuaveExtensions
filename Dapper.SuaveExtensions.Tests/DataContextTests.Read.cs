@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,18 +8,19 @@ using Dapper.SuaveExtensions.Tests.Models;
 
 using NUnit.Framework;
 
-namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
+namespace Dapper.SuaveExtensions.Tests
 {
-    public class ReadTests
+    public partial class DataContextTests
     {
         /// <summary>
         /// Test that we can execute Get All when the Model is mapped with an Identity column.
         /// </summary>
-        [Test]
-        public async Task Read_All_With_Identity()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Read_All_With_Identity(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
             await dataContext.Create(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });
 
@@ -35,11 +37,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that we can execute Get All when the Model is mapped with a Manual key column.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Read_All_With_Assigned()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Read_All_With_Assigned(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create(new CityManual() { CityCode = "PUP", CityName = "Portsmouth" });
             await dataContext.Create(new CityManual() { CityCode = "NYC", CityName = "New York City" });
 
@@ -53,11 +56,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// <summary>
         /// Test that we can get an entity with a single identity key using the property bag approach.
         /// </summary>
-        [Test]
-        public async Task Read_By_Id_With_Identity_Property_Bag()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Read_By_Id_With_Identity_Property_Bag(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             City pup = await dataContext.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
             await dataContext.Create(new City() { CityCode = "NYC", CityName = "New York City", Area = "New York" });
 
@@ -74,11 +78,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that we can get an entity with a single identity key by passing a single typed argument
         /// rather than using a property bag.
         /// </summary>
-        [Test]
-        public async Task Read_By_Id_With_Identity_Single_Typed_Argument()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Read_By_Id_With_Identity_Single_Typed_Argument(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             City pup = await dataContext.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
             await dataContext.Create(new City() { CityCode = "NYC", CityName = "New York City", Area = "New York" });
 
@@ -95,11 +100,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test we can retrieve an entity with a single assigned key.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Read_By_Id_With_Assigned_Property_Bag()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Read_By_Id_With_Assigned_Property_Bag(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create(new CityManual() { CityCode = "PUP", CityName = "Portsmouth" });
             await dataContext.Create(new CityManual() { CityCode = "NYC", CityName = "New York City" });
 
@@ -115,11 +121,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test we can retrive an entity with a single assigned key using a single typed argument.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Read_By_Id_With_Assigned_Single_Typed_Argument()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Read_By_Id_With_Assigned_Single_Typed_Argument(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create(new CityManual() { CityCode = "PUP", CityName = "Portsmouth" });
             await dataContext.Create(new CityManual() { CityCode = "NYC", CityName = "New York City" });
 
@@ -135,11 +142,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Gets the by where conditions.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Read_By_Where_Condition()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Read_By_Where_Condition(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
             await dataContext.Create(new City() { CityCode = "PUP", CityName = "Portsmouth", Area = "Hampshire" });
             await dataContext.Create(new City() { CityCode = "SOU", CityName = "Southampton", Area = "Hampshire" });
             await dataContext.Create(new City() { CityCode = "BOU", CityName = "Bournemouth", Area = "Dorset" });

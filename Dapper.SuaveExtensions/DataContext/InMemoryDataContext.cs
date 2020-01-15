@@ -209,6 +209,12 @@ namespace Dapper.SuaveExtensions.DataContext
                 IDictionary<string, object> updateProps = allProps.Where(kvp => !id.ContainsKey(kvp.Key))
                                                                   .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
+                // check whether there are any properties to update
+                if (!type.UpdateableProperties.Any(x => updateProps.Keys.Contains(x.Property)))
+                {
+                    throw new ArgumentException("Please provide one or more updateable properties.");
+                }
+
                 // update the properties that are not date stamps
                 foreach (string propertyName in updateProps.Keys)
                 {

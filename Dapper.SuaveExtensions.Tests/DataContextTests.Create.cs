@@ -6,19 +6,21 @@ using Dapper.SuaveExtensions.Tests.Models;
 
 using NUnit.Framework;
 
-namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
+namespace Dapper.SuaveExtensions.Tests
 {
     [TestFixture]
-    public class CreateTests
+    public partial class DataContextTests
     {
         /// <summary>
         /// Test that we can insert an entity that has single key which is an identity column.
         /// </summary>
-        [Test]
-        public async Task Insert_With_Identity()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        
+        public async Task Insert_With_Identity(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // Act
             City city = await dataContext.Create(new City() { CityCode = "BRI", CityName = "Brighton", Area = "Sussex" });
@@ -33,11 +35,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// <summary>
         /// Test that we can insert an entity which has a single key that is manually derived
         /// </summary>
-        [Test]
-        public async Task Insert_With_Assigned_Key()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Insert_With_Assigned_Key(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // Act
             CityManual city = await dataContext.Create(new CityManual() { CityCode = "BRI", CityName = "Brighton" });
@@ -50,11 +53,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// <summary>
         /// Test that we can insert an entity which has a sequentially calculated key
         /// </summary>
-        [Test]
-        public async Task Insert_With_Sequential_Key()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Insert_With_Sequential_Key(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // Act
             CitySequential city = await dataContext.Create(new CitySequential() { CityCode = "BRI", CityName = "Brighton" });
@@ -69,11 +73,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that we can insert an entity which has one manual key and one sequential key
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Insert_With_Composite_Key_One_Assigned_And_One_Sequential()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Insert_With_Composite_Key_One_Assigned_And_One_Sequential(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // Act
             AssignedAndSequential one = await dataContext.Create(new AssignedAndSequential() { AssignedId = 1, Heading = "One" });
@@ -88,11 +93,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// Test that we can insert an entity which has two manual keys and one sequential key
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Insert_With_Composite_Key_Two_Assigned_And_One_Sequential()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Insert_With_Composite_Key_Two_Assigned_And_One_Sequential(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // Act
             AssignedPairAndSequential oneOneOne = await dataContext.Create(new AssignedPairAndSequential() { FirstAssignedId = 1, SecondAssignedId = 1, Heading = "One" });
@@ -110,11 +116,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
         /// to the time now on insert.
         /// </summary>
         /// <returns></returns>
-        [Test]
-        public async Task Insert_With_Datestamp()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Insert_With_Datestamp(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // Act
             DateTime now = DateTime.Now;
@@ -127,11 +134,12 @@ namespace Dapper.SuaveExtensions.Tests.DataContext.InMemory
             Assert.That(row.InsertDate, Is.EqualTo(now).Within(TimeSpan.FromSeconds(1)));
         }
 
-        [Test]
-        public async Task Insert_With_Soft_Delete()
+        [TestCase(typeof(InMemoryDataContext))]
+        [TestCase(typeof(SqlServerDataContext))]
+        public async Task Insert_With_Soft_Delete(Type dataContextType)
         {
             // Arrange
-            InMemoryDataContext dataContext = new InMemoryDataContext();
+            IDataContext dataContext = DataContextTestHelper.GetDataContext(dataContextType);
 
             // Act
             SoftDelete softDelete = await dataContext.Create<SoftDelete>(new SoftDelete()).ConfigureAwait(false);

@@ -8,26 +8,8 @@ using Dapper.SuaveExtensions.Tests.Models;
 namespace Dapper.SuaveExtensions.Tests
 {
     [TestFixture]
-    public class CreateTests
+    public partial class ExtensionMethodTests
     {
-        /// <summary>
-        /// Initialises routine for each Test Fixture
-        /// </summary>
-        [SetUp]
-        public void Setup()
-        {
-            LocalDbTestHelper.CreateTestDatabase(TestContext.CurrentContext.Test.FullName);
-        }
-
-        /// <summary>
-        /// Tear down routine for each Test Fixture
-        /// </summary>
-        [TearDown]
-        public void TearDown()
-        {
-            LocalDbTestHelper.DeleteTestDatabase(TestContext.CurrentContext.Test.FullName);
-        }
-
         /// <summary>
         /// Test that we can insert an entity that has single key which is an identity column.
         /// </summary>
