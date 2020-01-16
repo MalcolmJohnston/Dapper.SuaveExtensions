@@ -61,6 +61,15 @@ namespace Dapper.SuaveExtensions.DataContext
         }
 
         /// <inheritdoc />
+        public async Task<PagedList<T>> ReadList<T>(object whereConditions, object sortOrders, int pageSize, int pageNumber)
+        {
+            using (SqlConnection conn = this.OpenConnection())
+            {
+                return await conn.ReadList<T>(whereConditions, sortOrders, pageSize, pageNumber);
+            }
+        }
+
+        /// <inheritdoc />
         public async Task<T> Update<T>(object properties)
         {
             using (SqlConnection conn = this.OpenConnection())

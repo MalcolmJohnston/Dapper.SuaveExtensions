@@ -184,10 +184,56 @@ namespace Dapper.SuaveExtensions.DataContext
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate the where conditions
-            whereConditions = type.CoalesceObject(whereConditions);
+            whereConditions = type.CoalesceToDictionary(whereConditions);
             type.ValidateWhereProperties(whereConditions);
 
             return Task.FromResult(this.ReadWhere<T>((IDictionary<string, object>)whereConditions));
+        }
+
+        /// <inheritdoc />
+        public Task<PagedList<T>> ReadList<T>(object whereConditions, object sortOrders, int pageSize, int pageNumber)
+        {
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // create the paging variables
+            int firstRow = ((pageNumber - 1) * pageSize) + 1;
+            int lastRow = firstRow + (pageSize - 1);
+
+            // get the candidate objects
+            IEnumerable<T> filteredT = new T[0];
+            IDictionary<string, object> whereDict = type.CoalesceToDictionary(whereConditions);
+
+            if (whereDict.Count == 0)
+            {
+                filteredT = this.ReadAll<T>().GetAwaiter().GetResult();
+            }
+            else
+            {
+                filteredT = this.ReadList<T>(whereConditions).GetAwaiter().GetResult();
+            }
+
+            // get the total number of candidate objects
+            int total = filteredT.Count();
+
+            // coalesce the sort orders
+            IDictionary<string, SortOrder> sortOrderDict = type.CoalesceSortOrderDictionary(sortOrders);
+
+            // order the list
+            string ordering = 
+                string.Join(",", sortOrderDict.Select(x => $"{x.Key}{(x.Value == SortOrder.Descending ? " desc" : string.Empty)}"));
+            filteredT = filteredT.AsQueryable<T>().OrderBy(ordering);
+
+            // read the rows
+            IEnumerable<T> results = filteredT.Skip(firstRow - 1).Take(pageSize);
+
+            return Task.FromResult(new PagedList<T>()
+            {
+                Rows = results,
+                HasNext = lastRow < total,
+                HasPrevious = firstRow > 1,
+                TotalPages = (total / pageSize) + ((total % pageSize) > 0 ? 1 : 0),
+                TotalRows = total
+            });
         }
 
         /// <inheritdoc />
@@ -205,7 +251,7 @@ namespace Dapper.SuaveExtensions.DataContext
             if (obj != null)
             {
                 // find the properties to update
-                IDictionary<string, object> allProps = type.CoalesceObject(properties);
+                IDictionary<string, object> allProps = type.CoalesceToDictionary(properties);
                 IDictionary<string, object> updateProps = allProps.Where(kvp => !id.ContainsKey(kvp.Key))
                                                                   .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 

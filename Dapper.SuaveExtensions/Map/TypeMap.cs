@@ -193,6 +193,11 @@ namespace Dapper.SuaveExtensions.Map
         }
 
         /// <summary>
+        /// Gets a dictionary indexed by property name paired with the default sort order (Ascending).
+        /// </summary>
+        public IDictionary<string, SortOrder> DefaultSortOrder { get; private set; }
+
+        /// <summary>
         /// Gets a type map from the cache or adds a new one to the cache.
         /// </summary>
         /// <typeparam name="T">The type of the type map.</typeparam>
@@ -262,11 +267,11 @@ namespace Dapper.SuaveExtensions.Map
         /// or
         /// Failed to find property {propertyInfo.Name}.
         /// </exception>
-        public IDictionary<string, object> CoalesceObject(object propertyBag)
+        public IDictionary<string, object> CoalesceToDictionary(object propertyBag)
         {
             if (propertyBag == null)
             {
-                throw new ArgumentException("Passed property bag is null.");
+                return new Dictionary<string, object>();
             }
 
             // if we have an expando object or dictionary already then return it
@@ -300,7 +305,7 @@ namespace Dapper.SuaveExtensions.Map
         /// or
         /// Failed to find key property {propertyMap.Property}.
         /// </exception>
-        public IDictionary<string, object> CoalesceKeyObject(object propertyBag)
+        public IDictionary<string, object> CoalesceKeyToDictionary(object propertyBag)
         {
             if (propertyBag == null)
             {
@@ -325,6 +330,54 @@ namespace Dapper.SuaveExtensions.Map
         }
 
         /// <summary>
+        /// Coalesces a dictionary representing the requested sort orders.
+        /// If no sort orders are passed then return a default ordering (ascending for all key fields).
+        /// </summary>
+        /// <param name="sortOrders">The sort orders.</param>
+        /// <returns>Dictionary representing the sort orders (indexed by column name).</returns>
+        /// <exception cref="ArgumentException">
+        /// Failed to find key property {propertyMap.Property}.
+        /// or
+        /// Must pass a sort order value.
+        /// </exception>
+        public IDictionary<string, SortOrder> CoalesceSortOrderDictionary(object sortOrders)
+        {
+            // only attempt to coalesce if we don't have a null reference
+            if (sortOrders != null)
+            {
+                // initialise our dictionary
+                IDictionary<string, SortOrder> sortOrdersDict = new Dictionary<string, SortOrder>();
+
+                // if we were passed a dictionary of the same type then return it as long as it has one or more values
+                if (sortOrders is IDictionary<string, SortOrder>)
+                {
+                    sortOrdersDict = sortOrders as IDictionary<string, SortOrder>;
+                }
+                else
+                {
+                    // coalesce the object
+                    foreach (PropertyInfo propertyInfo in sortOrders.GetType().GetProperties())
+                    {
+                        if (propertyInfo.PropertyType != typeof(SortOrder))
+                        {
+                            throw new ArgumentException($"Must pass a valid sort order value.");
+                        }
+
+                        sortOrdersDict.Add(propertyInfo.Name, (SortOrder)propertyInfo.GetValue(sortOrders));
+                    }
+                }
+
+                // validate and return
+                if (sortOrdersDict.Any())
+                {
+                    return sortOrdersDict;
+                }
+            }
+
+            return this.DefaultSortOrder;
+        }
+
+        /// <summary>
         /// Validates the where properties.
         /// </summary>
         /// <param name="whereConditions">The where conditions.</param>
@@ -339,7 +392,7 @@ namespace Dapper.SuaveExtensions.Map
         public IList<PropertyMap> ValidateWhereProperties(object whereConditions)
         {
             // coalesce the object to a dictionary
-            IDictionary<string, object> whereDict = this.CoalesceObject(whereConditions);
+            IDictionary<string, object> whereDict = this.CoalesceToDictionary(whereConditions);
 
             // check we have some conditions to create
             if (whereDict.Count == 0)
@@ -449,6 +502,10 @@ namespace Dapper.SuaveExtensions.Map
 
             // set the date stamp properties
             typeMap.DateStampProperties = typeMap.AllProperties.Values.Where(x => x.IsDateStamp).ToList();
+
+            // set the default sort order
+            typeMap.DefaultSortOrder = typeMap.AllKeys.Select(x => new { Key = x.Column, Value = SortOrder.Ascending })
+                                                      .ToDictionary(x => x.Key, x => x.Value);
 
             return typeMap;
         }
