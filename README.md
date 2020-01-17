@@ -1,5 +1,7 @@
 [![Build Status](https://dev.azure.com/malcolmpjohnston/Dapper.SuaveExtensions/_apis/build/status/MalcolmJohnston.Dapper.SuaveExtensions?branchName=master)](https://dev.azure.com/malcolmpjohnston/Dapper.SuaveExtensions/_build/latest?definitionId=1&branchName=master)
 
+https://img.shields.io/nuget/v/Dapper.SuaveExtensions
+
 # Dapper.SuaveExtensions
 Suave-Extensions for Dapper
 
