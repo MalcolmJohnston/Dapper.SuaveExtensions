@@ -200,7 +200,7 @@ namespace Dapper.SuaveExtensions.DataContext
             int lastRow = firstRow + (pageSize - 1);
 
             // get the candidate objects
-            IEnumerable<T> filteredT = new T[0];
+            IEnumerable<T> filteredT;
             IDictionary<string, object> whereDict = type.CoalesceToDictionary(whereConditions);
 
             if (whereDict.Count == 0)
@@ -215,20 +215,32 @@ namespace Dapper.SuaveExtensions.DataContext
             // get the total number of candidate objects
             int total = filteredT.Count();
 
-            // coalesce the sort orders
+            // validate / build the ordering string
+            string ordering = string.Empty;
             IDictionary<string, SortOrder> sortOrderDict = type.CoalesceSortOrderDictionary(sortOrders);
 
-            // order the list
-            string ordering = 
-                string.Join(",", sortOrderDict.Select(x => $"{x.Key}{(x.Value == SortOrder.Descending ? " desc" : string.Empty)}"));
-            filteredT = filteredT.AsQueryable<T>().OrderBy(ordering);
+            for (int i = 0; i < sortOrderDict.Count; i++)
+            {
+                // check whether this property exists for the type
+                string propertyName = sortOrderDict.Keys.ElementAt(i);
+                if (!type.AllProperties.ContainsKey(propertyName))
+                {
+                    throw new ArgumentException($"Failed to find property {propertyName} on {type.Type.Name}");
+                }
 
-            // read the rows
-            IEnumerable<T> results = filteredT.Skip(firstRow - 1).Take(pageSize);
+                ordering += string.Format(
+                    "{0}{1}{2}",
+                    propertyName,
+                    sortOrderDict[propertyName] == SortOrder.Descending ? " desc" : string.Empty,
+                    i != sortOrderDict.Count - 1 ? "," : string.Empty);
+            }
+
+            // order the rows and take the results for this page
+            filteredT = filteredT.AsQueryable<T>().OrderBy(ordering).Skip(firstRow - 1).Take(pageSize);
 
             return Task.FromResult(new PagedList<T>()
             {
-                Rows = results,
+                Rows = filteredT,
                 HasNext = lastRow < total,
                 HasPrevious = firstRow > 1,
                 TotalPages = (total / pageSize) + ((total % pageSize) > 0 ? 1 : 0),

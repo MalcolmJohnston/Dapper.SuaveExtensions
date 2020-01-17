@@ -15,7 +15,7 @@ namespace Dapper.SuaveExtensions.Map
     /// </summary>
     public class TypeMap
     {
-        private static ConcurrentDictionary<string, TypeMap> typeMapCache = new ConcurrentDictionary<string, TypeMap>();
+        private static readonly ConcurrentDictionary<string, TypeMap> TypeMapCache = new ConcurrentDictionary<string, TypeMap>();
 
         /// <summary>
         /// Gets or sets the mapped type.
@@ -205,12 +205,12 @@ namespace Dapper.SuaveExtensions.Map
         public static TypeMap GetTypeMap<T>()
         {
             string cacheKey = typeof(T).FullName;
-            if (!typeMapCache.ContainsKey(cacheKey))
+            if (!TypeMapCache.ContainsKey(cacheKey))
             {
-                typeMapCache[cacheKey] = TypeMap.LoadTypeMapping<T>();
+                TypeMapCache[cacheKey] = TypeMap.LoadTypeMapping<T>();
             }
 
-            return typeMapCache[cacheKey];
+            return TypeMapCache[cacheKey];
         }
 
         /// <summary>
