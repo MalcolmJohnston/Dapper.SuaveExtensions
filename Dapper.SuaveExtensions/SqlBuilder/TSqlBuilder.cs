@@ -15,12 +15,50 @@ namespace Dapper.SuaveExtensions.SqlBuilder
     /// </summary>
     public class TSqlBuilder : ISqlBuilder
     {
+        private const string OrderByAsc = "ASC";
+        private const string OrderByDesc = "DESC";
+
         private readonly ConcurrentDictionary<string, string> staticSqlStatementCache = new ConcurrentDictionary<string, string>();
 
         /// <inheritdoc />
         public string EncapsulationFormat
         {
             get { return "[{0}]"; }
+        }
+
+        /// <inheritdoc />
+        public string OrderByAscending
+        {
+            get { return OrderByAsc; }
+        }
+
+        /// <inheritdoc />
+        public string OrderByDescending
+        {
+            get { return OrderByDesc; }
+        }
+
+        /// <inheritdoc />
+        public string BuildSelectCount(TypeMap type, object whereConditions)
+        {
+            if (type == null)
+            {
+                throw new ArgumentException("Please provide a non-null TypeMap.");
+            }
+
+            string cacheKey = $"{type.Type.FullName}_Select_Count";
+            if (!this.staticSqlStatementCache.ContainsKey(cacheKey))
+            {
+                this.staticSqlStatementCache[cacheKey] = $"SELECT COUNT(*) FROM {type.TableIdentifier}";
+            }
+
+            IDictionary<string, object> whereConditionsDict = type.CoalesceToDictionary(whereConditions);
+            if (whereConditionsDict.Any())
+            {
+                return $"{this.staticSqlStatementCache[cacheKey]} {BuildWhere(type, whereConditions)}";
+            }
+
+            return this.staticSqlStatementCache[cacheKey];
         }
 
         /// <inheritdoc />
@@ -84,6 +122,29 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             sb.Append(BuildWhere(type, whereConditions));
 
             return sb.ToString();
+        }
+
+        /// <inheritdoc />
+        public string BuildSelectWhere(TypeMap type, object whereConditions, object sortOrders, int firstRow, int lastRow)
+        {
+            if (type == null)
+            {
+                throw new ArgumentException("Please provide a non-null TypeMap.");
+            }
+
+            // build the WHERE clause (if any specified)
+            IDictionary<string, object> whereConditionsDict = type.CoalesceToDictionary(whereConditions);
+            string where = whereConditionsDict.Any() ? BuildWhere(type, whereConditions) : string.Empty;
+
+            // build the ORDER BY clause (always required and will default to primary key columns ascending, if none specified)
+            string orderBy = this.BuildOrderBy(type, sortOrders);
+
+            // build paging sql
+            return $@"SELECT {string.Join(", ", type.SelectProperties.Select(x => x.ColumnSelect))}
+                        FROM (SELECT ROW_NUMBER() OVER ({orderBy}) AS RowNo, *
+                                FROM {type.TableIdentifier}
+                                {where}) tmp
+                        WHERE tmp.RowNo BETWEEN {firstRow} AND {lastRow};";
         }
 
         /// <inheritdoc />
@@ -325,6 +386,34 @@ namespace Dapper.SuaveExtensions.SqlBuilder
             }
 
             return this.staticSqlStatementCache[cacheKey];
+        }
+
+        private string BuildOrderBy(TypeMap type, object sortOrders)
+        {
+            // coalesce the dictionary
+            IDictionary<string, SortOrder> sortOrderDict = type.CoalesceSortOrderDictionary(sortOrders);
+
+            // validate / return
+            StringBuilder orderBySb = new StringBuilder("ORDER BY ");
+            for (int i = 0; i < sortOrderDict.Count; i++)
+            {
+                string propertyName = sortOrderDict.Keys.ElementAt(i);
+                SortOrder order = sortOrderDict[propertyName];
+
+                if (type.AllProperties.TryGetValue(propertyName, out PropertyMap pm) == false)
+                {
+                    throw new ArgumentException($"Failed to find property {propertyName} on {type.Type.Name}");
+                }
+
+                orderBySb.Append($"{pm.Column} {this.GetSortOrder(order)}");
+
+                if (i != sortOrderDict.Count - 1)
+                {
+                    orderBySb.Append(", ");
+                }
+            }
+
+            return orderBySb.ToString();
         }
     }
 }

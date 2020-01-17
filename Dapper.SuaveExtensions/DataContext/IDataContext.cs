@@ -33,12 +33,23 @@ namespace Dapper.SuaveExtensions.DataContext
         Task<IEnumerable<T>> ReadAll<T>();
 
         /// <summary>
-        /// Reads all entities satisfying with properties that match the where condition.
+        /// Reads all entities with properties that match the where condition.
         /// </summary>
         /// <typeparam name="T">Type of the entity.</typeparam>
-        /// <param name="whereConditions">The where conditions.</param>
+        /// <param name="whereConditions">The properties to filter on.</param>
         /// <returns>All entities matching the where condition.</returns>
         Task<IEnumerable<T>> ReadList<T>(object whereConditions);
+
+        /// <summary>
+        /// Reads the entities in pages with optional where conditions and sort orders.
+        /// </summary>
+        /// <typeparam name="T">Type of the entity.</typeparam>
+        /// <param name="whereConditions">The properties to filter on.</param>
+        /// <param name="sortOrders">The properties to sort on and associated sort order.</param>
+        /// <param name="pageSize">The number of items on each page.</param>
+        /// <param name="pageNumber">The page number.</param>
+        /// <returns>The paged list representing the result of the query.</returns>
+        Task<PagedList<T>> ReadList<T>(object whereConditions, object sortOrders, int pageSize, int pageNumber);
 
         /// <summary>
         /// Updates the specified properties on the entity.

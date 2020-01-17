@@ -133,11 +133,52 @@ namespace Dapper
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // validate all properties passed
-            type.ValidateWhereProperties(type.CoalesceObject(whereConditions));
+            type.ValidateWhereProperties(type.CoalesceToDictionary(whereConditions));
 
             return await connection.QueryAsync<T>(
                 SqlBuilder.BuildSelectWhere(type, whereConditions),
                 whereConditions).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Gets a list T from the database where T matches the properties of the whereConditions object.
+        /// </summary>
+        /// <typeparam name="T">The type to retrieve from the database.</typeparam>
+        /// <param name="connection">The connection.</param>
+        /// <param name="whereConditions">The where conditions.</param>
+        /// <param name="sortOrders">The sort orders.</param>
+        /// <param name="pageSize">The number of objects to return.</param>
+        /// <param name="pageNumber">The page number.</param>
+        /// <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
+        public static async Task<PagedList<T>> ReadList<T>(
+            this IDbConnection connection,
+            object whereConditions,
+            object sortOrders,
+            int pageSize,
+            int pageNumber)
+        {
+            TypeMap type = TypeMap.GetTypeMap<T>();
+
+            // create the paging variables
+            int firstRow = ((pageNumber - 1) * pageSize) + 1;
+            int lastRow = firstRow + (pageSize - 1);
+
+            // read the count
+            int total = await connection.ExecuteScalarAsync<int>(SqlBuilder.BuildSelectCount(type, whereConditions), whereConditions);
+
+            // read the rows
+            IEnumerable<T> results = await connection.QueryAsync<T>(
+                SqlBuilder.BuildSelectWhere(type, whereConditions, sortOrders, firstRow, lastRow),
+                whereConditions);
+
+            return new PagedList<T>()
+            {
+                Rows = results,
+                HasNext = lastRow < total,
+                HasPrevious = firstRow > 1,
+                TotalPages = (total / pageSize) + ((total % pageSize) > 0 ? 1 : 0),
+                TotalRows = total
+            };
         }
 
         /// <summary>
@@ -152,7 +193,7 @@ namespace Dapper
             TypeMap type = TypeMap.GetTypeMap<T>();
 
             // coalesce key property
-            IDictionary<string, object> id = type.CoalesceKeyObject(properties);
+            IDictionary<string, object> id = type.CoalesceKeyToDictionary(properties);
 
             // execute the insert
             await conn.ExecuteAsync(SqlBuilder.BuildUpdate(type, properties), properties)

@@ -137,11 +137,22 @@
         </member>
         <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.ReadList``1(System.Object)">
             <summary>
-            Reads all entities satisfying with properties that match the where condition.
+            Reads all entities with properties that match the where condition.
             </summary>
             <typeparam name="T">Type of the entity.</typeparam>
-            <param name="whereConditions">The where conditions.</param>
+            <param name="whereConditions">The properties to filter on.</param>
             <returns>All entities matching the where condition.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.ReadList``1(System.Object,System.Object,System.Int32,System.Int32)">
+            <summary>
+            Reads the entities in pages with optional where conditions and sort orders.
+            </summary>
+            <typeparam name="T">Type of the entity.</typeparam>
+            <param name="whereConditions">The properties to filter on.</param>
+            <param name="sortOrders">The properties to sort on and associated sort order.</param>
+            <param name="pageSize">The number of items on each page.</param>
+            <param name="pageNumber">The page number.</param>
+            <returns>The paged list representing the result of the query.</returns>
         </member>
         <member name="M:Dapper.SuaveExtensions.DataContext.IDataContext.Update``1(System.Object)">
             <summary>
@@ -201,6 +212,9 @@
         <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.ReadList``1(System.Object)">
             <inheritdoc />
         </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.ReadList``1(System.Object,System.Object,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="M:Dapper.SuaveExtensions.DataContext.InMemoryDataContext.Update``1(System.Object)">
             <inheritdoc />
         </member>
@@ -227,6 +241,9 @@
             <inheritdoc />
         </member>
         <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.ReadList``1(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.ReadList``1(System.Object,System.Object,System.Int32,System.Int32)">
             <inheritdoc />
         </member>
         <member name="M:Dapper.SuaveExtensions.DataContext.SqlServerDataContext.Update``1(System.Object)">
@@ -513,6 +530,11 @@
               <c>true</c> if this instance has soft delete; otherwise, <c>false</c>.
             </value>
         </member>
+        <member name="P:Dapper.SuaveExtensions.Map.TypeMap.DefaultSortOrder">
+            <summary>
+            Gets a dictionary indexed by property name paired with the default sort order (Ascending).
+            </summary>
+        </member>
         <member name="M:Dapper.SuaveExtensions.Map.TypeMap.GetTypeMap``1">
             <summary>
             Gets a type map from the cache or adds a new one to the cache.
@@ -529,7 +551,7 @@
             <exception cref="T:System.ArgumentException">Thrown if a key property is not passed on the object.</exception>
             <returns>The validated key property bag.</returns>
         </member>
-        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceObject(System.Object)">
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceToDictionary(System.Object)">
             <summary>
             Coalesces a dictionary from a property bag.
             </summary>
@@ -541,7 +563,7 @@
             Failed to find property {propertyInfo.Name}.
             </exception>
         </member>
-        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceKeyObject(System.Object)">
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceKeyToDictionary(System.Object)">
             <summary>
             Coalesces a dictionary representing the primary key.
             </summary>
@@ -551,6 +573,19 @@
             Passed property bag is null
             or
             Failed to find key property {propertyMap.Property}.
+            </exception>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.Map.TypeMap.CoalesceSortOrderDictionary(System.Object)">
+            <summary>
+            Coalesces a dictionary representing the requested sort orders.
+            If no sort orders are passed then return a default ordering (ascending for all key fields).
+            </summary>
+            <param name="sortOrders">The sort orders.</param>
+            <returns>Dictionary representing the sort orders (indexed by column name).</returns>
+            <exception cref="T:System.ArgumentException">
+            Failed to find key property {propertyMap.Property}.
+            or
+            Must pass a sort order value.
             </exception>
         </member>
         <member name="M:Dapper.SuaveExtensions.Map.TypeMap.ValidateWhereProperties(System.Object)">
@@ -586,6 +621,24 @@
             For example in SQL Server identifers are wrapped in square brackets i.e. "[{0}]".
             </summary>
         </member>
+        <member name="P:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.OrderByAscending">
+            <summary>
+            Gets the string representation of a ascending qualifier on an ORDER BY clause.
+            </summary>
+        </member>
+        <member name="P:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.OrderByDescending">
+            <summary>
+            Gets the string representation of a descending qualifier on an ORDER BY clause.
+            </summary>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildSelectCount(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <summary>
+            Build a select statement that counts the returned rows when the where conditions are applied.
+            </summary>
+            <param name="type">The type.</param>
+            <param name="whereConditions">The where conditions.</param>
+            <returns>The select statement that counts the number of rows.</returns>
+        </member>
         <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildSelectAll(Dapper.SuaveExtensions.Map.TypeMap)">
             <summary>
             Builds the select statement.
@@ -608,6 +661,17 @@
             <param name="type">The type.</param>
             <param name="whereConditions">The where conditions.</param>
             <returns>The select where statement.</returns>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildSelectWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object,System.Object,System.Int32,System.Int32)">
+            <summary>
+            Builds a select statement with a dynamic where clause, dynamic sort order collection and paging arguments.
+            </summary>
+            <param name="type">The type.</param>
+            <param name="whereConditions">The where conditions.</param>
+            <param name="sortOrders">The sort orders (may be null).</param>
+            <param name="firstRow">The first row to return (e.g. 1).</param>
+            <param name="lastRow">The last row to return (e.g. 10).</param>
+            <returns>The select where statement for the given page and number of objects.</returns>
         </member>
         <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder.BuildInsert(Dapper.SuaveExtensions.Map.TypeMap)">
             <summary>
@@ -646,12 +710,34 @@
             <param name="type">The type.</param>
             <returns>The get next identifier select statement.</returns>
         </member>
+        <member name="T:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilderExtensions">
+            <summary>
+            Extension methods for the ISqlBuilder interface.
+            </summary>
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.ISqlBuilderExtensions.GetSortOrder(Dapper.SuaveExtensions.SqlBuilder.ISqlBuilder,Dapper.SortOrder)">
+            <summary>
+            Gets the string representation of the Sort Order enumeration for a given Sql Builder.
+            </summary>
+            <param name="sqlBuilder">The Sql Builder.</param>
+            <param name="sortOrder">The Sort Order.</param>
+            <returns>The sort order for an ORDER BY clause for the given Sql Builder.</returns>
+        </member>
         <member name="T:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder">
             <summary>
             TSqlDialect implementation for SQL Server.
             </summary>
         </member>
         <member name="P:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.EncapsulationFormat">
+            <inheritdoc />
+        </member>
+        <member name="P:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.OrderByAscending">
+            <inheritdoc />
+        </member>
+        <member name="P:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.OrderByDescending">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildSelectCount(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
             <inheritdoc />
         </member>
         <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildSelectAll(Dapper.SuaveExtensions.Map.TypeMap)">
@@ -661,6 +747,9 @@
             <inheritdoc />
         </member>
         <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildSelectWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildSelectWhere(Dapper.SuaveExtensions.Map.TypeMap,System.Object,System.Object,System.Int32,System.Int32)">
             <inheritdoc />
         </member>
         <member name="M:Dapper.SuaveExtensions.SqlBuilder.TSqlBuilder.BuildDeleteById(Dapper.SuaveExtensions.Map.TypeMap)">
@@ -727,6 +816,18 @@
             <param name="whereConditions">The where conditions.</param>
             <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
         </member>
+        <member name="M:Dapper.ExtensionMethods.ReadList``1(System.Data.IDbConnection,System.Object,System.Object,System.Int32,System.Int32)">
+            <summary>
+            Gets a list T from the database where T matches the properties of the whereConditions object.
+            </summary>
+            <typeparam name="T">The type to retrieve from the database.</typeparam>
+            <param name="connection">The connection.</param>
+            <param name="whereConditions">The where conditions.</param>
+            <param name="sortOrders">The sort orders.</param>
+            <param name="pageSize">The number of objects to return.</param>
+            <param name="pageNumber">The page number.</param>
+            <returns>Enumerable collection of <typeparamref name="T"/>.</returns>
+        </member>
         <member name="M:Dapper.ExtensionMethods.Update``1(System.Data.IDbConnection,System.Object)">
             <summary>
             Updates the specified properties of an entity.
@@ -753,6 +854,73 @@
             <param name="connection">The connection.</param>
             <param name="whereConditions">The where conditions.</param>
             <returns><see cref="T:System.Threading.Tasks.Task"/> representing the deletion operation.</returns>
+        </member>
+        <member name="T:Dapper.PagedList`1">
+            <summary>
+            An enumerable collection of T with paging information
+            </summary>
+            <typeparam name="T">The type of the row objects</typeparam>
+        </member>
+        <member name="M:Dapper.PagedList`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Dapper.PagedList`1"/> class.
+            <typeparamref name="T">The type of the list objects.</typeparamref>
+            </summary>
+        </member>
+        <member name="P:Dapper.PagedList`1.HasNext">
+            <summary>
+            Gets or sets a value indicating whether this instance has a next page.
+            </summary>
+            <value>
+              <c>true</c> if this instance has a previous page; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.PagedList`1.HasPrevious">
+            <summary>
+            Gets or sets a value indicating whether this instance has a previous page.
+            </summary>
+            <value>
+              <c>true</c> if this instance has a previous page; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Dapper.PagedList`1.TotalPages">
+            <summary>
+            Gets or sets the total number of pages.
+            </summary>
+            <value>
+            The total number of pages.
+            </value>
+        </member>
+        <member name="P:Dapper.PagedList`1.TotalRows">
+            <summary>
+            Gets or sets the total number of rows.
+            </summary>
+            <value>
+            The total number of rows.
+            </value>
+        </member>
+        <member name="P:Dapper.PagedList`1.Rows">
+            <summary>
+            Gets or sets the rows for this page.
+            </summary>
+            <value>
+            The rows for this page.
+            </value>
+        </member>
+        <member name="T:Dapper.SortOrder">
+            <summary>
+            Enumeration for defining the sort order of a query.
+            </summary>
+        </member>
+        <member name="F:Dapper.SortOrder.Ascending">
+            <summary>
+            Sort the results in ascending order
+            </summary>
+        </member>
+        <member name="F:Dapper.SortOrder.Descending">
+            <summary>
+            Sort the results in descending order
+            </summary>
         </member>
     </members>
 </doc>
